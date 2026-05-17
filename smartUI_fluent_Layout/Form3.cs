@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Net;
@@ -41,8 +42,14 @@ namespace smartUI_fluent_Layout
 		{
 			InitializeComponent();
 
+			var sw = new Stopwatch();
+			sw.Start();
+
 			BuildUI__W11ModernSettings();
 
+			sw.Stop();
+
+			Text += " -- BuildUI__W11ModernSettings: " + sw.ElapsedMilliseconds+" ms";
 		}
 
 
