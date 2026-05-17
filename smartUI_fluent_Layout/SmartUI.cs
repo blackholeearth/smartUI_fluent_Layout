@@ -76,17 +76,27 @@ namespace SmartLayoutEngine
 		}
 
 		// --- YAPISAL METOTLAR ---
-
 		public RowResult Row(params Control[] controls)
 		{
-			Panel rowPanel = new Panel { BackColor = Color.Transparent, Margin = new Padding(0) };
+			// ESKİDEN: Panel rowPanel = new Panel();
+			// ŞİMDİ: Satırımız da artık zeki bir SmartGroup!
+			SmartGroup rowPanel = new SmartGroup
+			{
+				LayoutOrder = controls,
+				IsVertical = false,
+				BackColor = Color.Transparent,
+				Margin = new Padding(0)
+			};
+
+			// Kasa küçülmesin, formun sonuna kadar uzasın diye GrowW veriyoruz
+			rowPanel.GetProps().GrowW = true;
 			_form.Controls.Add(rowPanel);
 
 			foreach (var c in controls)
 			{
 				c.Anchor = AnchorStyles.Top | AnchorStyles.Left;
 				c.Dock = DockStyle.None;
-				c.Margin = new Padding(0); // Diktatörlük Bitti, Sıfır Base!
+				c.Margin = new Padding(0);
 				RegisterForZoom(c);
 				rowPanel.Controls.Add(c);
 			}
@@ -96,6 +106,8 @@ namespace SmartLayoutEngine
 			if (_form.IsHandleCreated) RefreshLayout();
 			return res;
 		}
+
+
 
 		public void Gap(int size)
 		{
@@ -196,7 +208,6 @@ namespace SmartLayoutEngine
 		}
 
 		// --- İÇ İÇE (NESTED) DÜZENLEYİCİ ---
-
 		public void Arrange(SmartGroup sg)
 		{
 			if (sg == null) return;
@@ -208,19 +219,29 @@ namespace SmartLayoutEngine
 			int innerWidth = sg.Width - sg.Padding.Left - sg.Padding.Right;
 			if (innerWidth <= 10) innerWidth = Scale(300);
 
-			int itemSpacing = sgProps.ItemSpacing.HasValue ? Scale(sgProps.ItemSpacing.Value) : 0; // Zero-Base!
+			int itemSpacing = sgProps.ItemSpacing.HasValue ? Scale(sgProps.ItemSpacing.Value) : 0;
 
+			// 🌟 YENİ: Genişlik Eşitleme (MatchWidth)
+			foreach (var c in sg.LayoutOrder)
+			{
+				var p = c.GetProps();
+				if (p.MatchWidthTarget != null) c.Width = p.MatchWidthTarget.Width;
+			}
+
+			// AŞAMA 1: İÇ ESNEKLİK HESABI
 			int fixedW = 0, flexCount = 0;
 			if (!sg.IsVertical)
 			{
 				foreach (var c in sg.LayoutOrder)
 				{
-					if (c.GetProps().GrowW) flexCount++;
+					var p = c.GetProps();
+					if (p.GrowW || p.Spring) flexCount++;
 					else fixedW += c.Width + itemSpacing;
 				}
 			}
 			int flexW = flexCount > 0 ? Math.Max(0, (innerWidth - fixedW) / flexCount) : innerWidth;
 
+			// AŞAMA 2: DİZİLİM
 			int currentX = sg.Padding.Left;
 			int currentY = sg.Padding.Top;
 			int maxWidth = 0, maxHeight = 0;
@@ -231,9 +252,9 @@ namespace SmartLayoutEngine
 				ApplyPaddingLogic(c);
 				var props = c.GetProps();
 
-				int childTargetWidth = sg.IsVertical ? innerWidth : (props.GrowW ? flexW : c.Width);
+				int childTargetWidth = sg.IsVertical ? innerWidth : ((props.GrowW || props.Spring) ? flexW : c.Width);
 
-				if (props.GrowW || sg.IsVertical)
+				if (props.GrowW || props.Spring || sg.IsVertical)
 				{
 					c.Width = childTargetWidth;
 					if (c is SmartGroup nested) { nested.AutoSize = false; nested.Width = childTargetWidth; }
@@ -248,10 +269,17 @@ namespace SmartLayoutEngine
 					lbl.Size = new Size(childTargetWidth, preferred.Height);
 				}
 
+				// REKÜRSİF: İç içe dizilim
 				if (c is SmartGroup n) Arrange(n);
 
 				c.Left = currentX;
 				c.Top = currentY;
+
+				// 🌟 YENİ: Sağa Hizalama (AlignRight)
+				if (props.AlignRightTarget != null)
+				{
+					c.Left = props.AlignRightTarget.Right - c.Width;
+				}
 
 				int gap = (i == sg.LayoutOrder.Length - 1) ? 0 : itemSpacing;
 
@@ -263,14 +291,14 @@ namespace SmartLayoutEngine
 				else
 				{
 					currentX += c.Width + gap;
-					maxHeight = Math.Max(maxHeight, c.Height);
+					if (!props.Spring) maxHeight = Math.Max(maxHeight, c.Height); // Yaylar yüksekliği etkilemez
 				}
 			}
 
 			sg.Height = (sg.IsVertical ? currentY : maxHeight + sg.Padding.Top) + sg.Padding.Bottom;
 			if (!sg.IsVertical && !sgProps.GrowW) sg.Width = currentX + sg.Padding.Right;
 
-			// Group VAlign (Middle/Bottom)
+			// AŞAMA 3: DİKEY HİZALAMA
 			if (!sg.IsVertical)
 			{
 				foreach (var c in sg.LayoutOrder)
@@ -310,9 +338,9 @@ namespace SmartLayoutEngine
 		}
 
 		// --- 🌟 NÜKLEER REFRESH LAYOUT MOTORU ---
-
 		public void RefreshLayout()
 		{
+			// 1. GÜVENLİK KONTROLÜ
 			if (_isPerformingLayout || _form == null || _form.IsDisposed || _form.WindowState == FormWindowState.Minimized)
 				return;
 
@@ -320,157 +348,18 @@ namespace SmartLayoutEngine
 			{
 				_isPerformingLayout = true;
 
-				// NÜKLEER SEÇENEK: Win32 Dondurma
+				// 🌟 SESSİZ OPERASYON: Win32 ile ekranı dondur
 				if (_form.IsHandleCreated) SendMessage(_form.Handle, WM_SETREDRAW, false, 0);
 
 				_form.SuspendLayout();
 				foreach (var row in _rows) if (row.Container != null) row.Container.SuspendLayout();
 				foreach (var sp in _sidePanels) sp.SuspendLayout();
 
-
-				// Aşama 0: Ön Hazırlık
-				foreach (var row in _rows)
-					foreach (var c in row.ControlsInRow)
-						if (c is SmartGroup sg) Arrange(sg);
-
-				// Aşama 1: Responsive Sidebar
-				bool isNarrow = _form.ClientSize.Width < _collapseThreshold;
-				SmartSidePanel leftSidebar = _sidePanels.FirstOrDefault(s => s.Edge == Side.Left);
-
-				if (_hamburgerBtn != null)
-				{
-					_hamburgerBtn.Visible = isNarrow;
-					if (isNarrow)
-					{
-						_hamburgerBtn.Parent = (_isSidebarFlyoutOpen && leftSidebar != null) ? leftSidebar : _form;
-						_hamburgerBtn.Location = new Point(Scale(10), Scale(10));
-						_hamburgerBtn.BringToFront();
-					}
-				}
-
-				Rectangle mainArea = new Rectangle(0, 0, _form.ClientSize.Width, _form.ClientSize.Height);
-
-				foreach (var sp in _sidePanels)
-				{
-					if (sp.Edge == Side.Left)
-					{
-						sp.Visible = !isNarrow || _isSidebarFlyoutOpen;
-						int sz = Scale(sp.BaseSize);
-						if (sp.Visible)
-						{
-							sp.Bounds = new Rectangle(0, 0, sz, _form.ClientSize.Height);
-							if (!isNarrow) { mainArea.X += sz; mainArea.Width -= sz; }
-							else sp.BringToFront();
-							ArrangeSideContent(sp, true);
-						}
-					}
-					else if (sp.Edge == Side.Bottom)
-					{
-						if (!sp.Visible) continue;
-						int sz = Scale(sp.BaseSize);
-						sp.Bounds = new Rectangle(mainArea.X, _form.ClientSize.Height - sz, mainArea.Width, sz);
-						mainArea.Height -= sz;
-						ArrangeSideContent(sp, false);
-					}
-				}
-
-				// Aşama 2: Çift Geçişli Dizilim (Double-Pass)
-				for (int pass = 0; pass < 2; pass++)
-				{
-					int totalFixedHeight = 0; // Zero-base! Ana alan ilk satırı 0'dan başlar
-					int growHCount = 0;
-
-					foreach (var row in _rows)
-					{
-						if (!row.Container.Visible || row.IsGap)
-						{
-							if (row.IsGap) totalFixedHeight += Scale(row.GapSize);
-							continue;
-						}
-
-						bool hasGrowH = row.ControlsInRow.Any(c => c.GetProps().GrowH);
-						totalFixedHeight += Scale(row.RawTopMargin) + Scale(row.RawBottomMargin) + row.Container.Padding.Top + row.Container.Padding.Bottom;
-
-						if (hasGrowH) growHCount++;
-						else
-						{
-							int maxH = 0;
-							foreach (var c in row.ControlsInRow) if (!c.GetProps().Spring) maxH = Math.Max(maxH, c.Height);
-							totalFixedHeight += maxH;
-						}
-					}
-
-					int heightPerGrow = growHCount > 0 ? Math.Max(10, (mainArea.Height - totalFixedHeight) / growHCount) : 0;
-					int currentY = mainArea.Y;
-
-					foreach (var row in _rows)
-					{
-						if (row.IsGap) { currentY += Scale(row.GapSize); continue; }
-						if (!row.Container.Visible) continue;
-
-						row.Container.Location = new Point(mainArea.X + Scale(row.RawLeftMargin), currentY + Scale(row.RawTopMargin));
-						row.Container.Width = mainArea.Width - Scale(row.RawLeftMargin) - Scale(row.RawRightMargin);
-
-						int fixedW = 0, flexCount = 0;
-						int rowItemSpacing = Scale(row.ItemSpacing);
-
-						foreach (var c in row.ControlsInRow)
-						{
-							ApplyPaddingLogic(c);
-							var p = c.GetProps();
-							if (p.MatchWidthTarget != null) c.Width = p.MatchWidthTarget.Width;
-
-							if (p.GrowW || p.Spring) flexCount++;
-							else fixedW += c.Width + rowItemSpacing;
-						}
-
-						int availW = row.Container.Width - row.Container.Padding.Left - row.Container.Padding.Right - fixedW;
-						if (row.ControlsInRow.Count > 0) availW -= rowItemSpacing * (row.ControlsInRow.Count - 1);
-						int flexW = flexCount > 0 ? Math.Max(0, availW / flexCount) : 0;
-
-						int curX = row.Container.Padding.Left;
-						int maxHInRow = 0;
-
-						for (int i = 0; i < row.ControlsInRow.Count; i++)
-						{
-							var c = row.ControlsInRow[i];
-							var p = c.GetProps();
-
-							if (p.GrowW || p.Spring)
-							{
-								c.Width = flexW;
-								if (c is SmartGroup sg) { sg.AutoSize = false; sg.Width = flexW; Arrange(sg); }
-							}
-							if (p.GrowH) c.Height = heightPerGrow;
-
-							c.Left = curX;
-							c.Top = row.Container.Padding.Top;
-
-							if (p.AlignRightTarget != null) c.Left = p.AlignRightTarget.Right - c.Width;
-
-							int gap = (i == row.ControlsInRow.Count - 1) ? 0 : rowItemSpacing;
-							curX += c.Width + gap;
-
-							if (!p.Spring) maxHInRow = Math.Max(maxHInRow, c.Height);
-						}
-
-						row.Container.Height = maxHInRow + row.Container.Padding.Top + row.Container.Padding.Bottom;
-
-						foreach (var c in row.ControlsInRow)
-						{
-							var p = c.GetProps();
-							if (p.VAlign == 1) c.Top = row.Container.Padding.Top + (maxHInRow - c.Height) / 2;
-							else if (p.VAlign == 2) c.Top = row.Container.Height - row.Container.Padding.Bottom - c.Height;
-						}
-
-						currentY += row.Container.Height + Scale(row.RawTopMargin) + Scale(row.RawBottomMargin);
-					}
-				}
-
-				if (_hamburgerBtn != null && _hamburgerBtn.Visible) _hamburgerBtn.BringToFront();
+				RefreshLayoutCore();
 			}
 			finally
 			{
+				// 🌟 EKRANI SERBEST BIRAK VE ÇİZ
 				foreach (var row in _rows) if (row.Container != null) row.Container.ResumeLayout(false);
 				foreach (var sp in _sidePanels) sp.ResumeLayout(false);
 				_form.ResumeLayout(false);
@@ -482,6 +371,110 @@ namespace SmartLayoutEngine
 				}
 				_isPerformingLayout = false;
 			}
+		}
+
+		private void RefreshLayoutCore()
+		{
+			// --- AŞAMA 1: RESPONSIVE SIDEBAR & HAMBURGER ---
+			bool isNarrow = _form.ClientSize.Width < _collapseThreshold;
+			SmartSidePanel leftSidebar = _sidePanels.FirstOrDefault(s => s.Edge == Side.Left);
+
+			if (_hamburgerBtn != null)
+			{
+				_hamburgerBtn.Visible = isNarrow;
+				if (isNarrow)
+				{
+					_hamburgerBtn.Parent = (_isSidebarFlyoutOpen && leftSidebar != null) ? leftSidebar : _form;
+					_hamburgerBtn.Location = new Point(Scale(10), Scale(10));
+					_hamburgerBtn.BringToFront();
+				}
+			}
+
+			Rectangle mainArea = new Rectangle(0, 0, _form.ClientSize.Width, _form.ClientSize.Height);
+
+			foreach (var sp in _sidePanels)
+			{
+				if (sp.Edge == Side.Left)
+				{
+					sp.Visible = !isNarrow || _isSidebarFlyoutOpen;
+					int sz = Scale(sp.BaseSize);
+					if (sp.Visible)
+					{
+						sp.Bounds = new Rectangle(0, 0, sz, _form.ClientSize.Height);
+						if (!isNarrow) { mainArea.X += sz; mainArea.Width -= sz; }
+						else sp.BringToFront();
+						ArrangeSideContent(sp, true);
+					}
+				}
+				else if (sp.Edge == Side.Bottom)
+				{
+					if (!sp.Visible) continue;
+					int sz = Scale(sp.BaseSize);
+					sp.Bounds = new Rectangle(mainArea.X, _form.ClientSize.Height - sz, mainArea.Width, sz);
+					mainArea.Height -= sz;
+					ArrangeSideContent(sp, false);
+				}
+			}
+
+			// --- AŞAMA 2: ÇİFT GEÇİŞLİ (DOUBLE-PASS) DİZİLİM ---
+			for (int pass = 0; pass < 2; pass++)
+			{
+				int totalFixedHeight = 0;
+				int growHCount = 0;
+
+				// Dikey boşluk hesaplama (GrowH)
+				foreach (var row in _rows)
+				{
+					if (!row.Container.Visible || row.IsGap)
+					{
+						if (row.IsGap) totalFixedHeight += Scale(row.GapSize);
+						continue;
+					}
+
+					bool hasGrowH = row.ControlsInRow.Any(c => c.GetProps().GrowH);
+					totalFixedHeight += Scale(row.RawTopMargin) + Scale(row.RawBottomMargin) + row.Container.Padding.Top + row.Container.Padding.Bottom;
+
+					if (hasGrowH) growHCount++;
+					else
+					{
+						int maxH = 0;
+						foreach (var c in row.ControlsInRow) if (!c.GetProps().Spring) maxH = Math.Max(maxH, c.Height);
+						totalFixedHeight += maxH;
+					}
+				}
+
+				int heightPerGrow = growHCount > 0 ? Math.Max(10, (mainArea.Height - totalFixedHeight) / growHCount) : 0;
+				int currentY = mainArea.Y;
+
+				// --- AŞAMA 3: SATIRLARI DİZ (JİLET VERSİYON) ---
+				foreach (var row in _rows)
+				{
+					if (row.IsGap) { currentY += Scale(row.GapSize); continue; }
+					if (!row.Container.Visible) continue;
+
+					// 🌟 Satırımız artık bir SmartGroup!
+					SmartGroup sgRow = (SmartGroup)row.Container;
+
+					// 1. Satırın dış kasasını (Genişlik ve Konum) belirle
+					sgRow.Location = new Point(mainArea.X + Scale(row.RawLeftMargin), currentY + Scale(row.RawTopMargin));
+					sgRow.Width = mainArea.Width - Scale(row.RawLeftMargin) - Scale(row.RawRightMargin);
+
+					// 2. Satır içindeki GrowH elemanlarının yüksekliğini set et
+					foreach (var c in row.ControlsInRow)
+					{
+						if (c.GetProps().GrowH) c.Height = heightPerGrow;
+					}
+
+					// 3. EFSANE HAMLE: Tüm esneklik, VAlign, Hizalama hesabını Arrange yapsın!
+					Arrange(sgRow);
+
+					// 4. Sonraki satıra geç (Yüksekliği Arrange metodu buldu)
+					currentY += sgRow.Height + Scale(row.RawTopMargin) + Scale(row.RawBottomMargin);
+				}
+			}
+
+			// Z-ORDER FİNAL
+			if (_hamburgerBtn != null && _hamburgerBtn.Visible) _hamburgerBtn.BringToFront();
 		}
 	}
 
