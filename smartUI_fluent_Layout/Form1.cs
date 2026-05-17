@@ -55,7 +55,8 @@ namespace smartUI_fluent_Layout
 			// Satır 3: DataGridView (Orta alan, tüm yüksekliği sömürsün)
 			ui.Row(dataGridView1.GrowW().GrowH())
 				   .Padding(5)
-				   .Border(BorderStyle.None);
+				   //.Border(BorderStyle.None)
+				   ;
 
 			// Satır 4: Butonlar (Kaydet butonu textbox'ın sağına hizalı, İptal ona uysun)
 			ui.Row(btnSave.AlignRight(textBox1), btnCancel.MatchWidth(btnSave))
