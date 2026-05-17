@@ -59,8 +59,10 @@ namespace smartUI_fluent_Layout
 			Color winBg = Color.FromArgb(243, 243, 243); // Main Bg
 			Color winSidebar = Color.FromArgb(238, 238, 238); // Sidebar Bg
 			Color winCard = Color.White; // Setting card Bg
-			Color winText = Color.FromArgb(32, 32, 32); 
-			Color winSubText = Color.Gray; 
+			Color winText = Color.FromArgb(32, 32, 32);
+			Color winSubText = Color.Gray;
+			Color BorderColor = Color.FromArgb(229, 229, 229);
+
 
 			ui = new SmartUI(this);
 
@@ -82,7 +84,7 @@ namespace smartUI_fluent_Layout
 				FlatStyle = FlatStyle.Flat,
 				Size = new Size(40, 40)
 			};
-			myBurger.FlatAppearance.BorderSize = 0;
+			Flat_NoBorder(myBurger);
 			this.Controls.Add(myBurger); // add it directly to form. 
 
 			// 2. tell SmartUI to use this button to open close SideBar .
@@ -93,24 +95,25 @@ namespace smartUI_fluent_Layout
 			// LEFT SIDEBAR
 			ui.SidePanel(Side.Left, 280,
 				ui.Group(
-					imgProfile, 
-					ui.Col(lblUser, lblEmail).VAlignMiddle() 
+					imgProfile,
+					ui.Col(lblUser, lblEmail).VAlignMiddle()
 				).VAlignMiddle().Padding(20),
 
 				txtSearch.GrowW(),
-				
+
 				ui.Space(10),
-				CreateSidebarItem( "\uE80F", "Giriş"),
-				CreateSidebarItem( "\uE770", "Sistem",isSelected:true).BackColor(winCard),
-				CreateSidebarItem( "\uE702", "Bluetooth ve cihazlar"),
-				CreateSidebarItem( "\uE774", "Ağ ve internet")
-			).BackColor(winSidebar);
+				CreateSidebarItem("\uE80F", "Giriş"),
+				CreateSidebarItem("\uE770", "Sistem", isSelected: true).BackColor(winCard),
+				CreateSidebarItem("\uE702", "Bluetooth ve cihazlar"),
+				CreateSidebarItem("\uE774", "Ağ ve internet")
+			).BackColor(winSidebar)
+			.Padding(20);
 
 
 			// RİGHT Content
 			//ui.Row(lblBreadcrumb).Margin(30, 20, 0, 0);
 			ui.Row(lblPageTitle)
-				.Margin(30-10, 0, 0, 10);
+				.Margin(30 - 10, 0, 0, 10);
 
 			// BÖLÜM 1: Brightness
 			ui.Row(lblSectionBrightness)
@@ -119,12 +122,15 @@ namespace smartUI_fluent_Layout
 			// Brightness Card
 			ui.Row(
 				ui.Group(
-					icoBrightness.Padding(0,0,10,0).VAlignMiddle().BackColor(Color.Transparent), 
-					ui.Col(lblBrightnessTitle, lblBrightnessDesc.WrapText() ).GrowW().Padding(0)
+					icoBrightness.Padding(0, 0, 10, 0).VAlignMiddle().BackColor(Color.Transparent),
+					ui.Col(lblBrightnessTitle, lblBrightnessDesc.WrapText()).GrowW().Padding(0)
 				).VAlignMiddle().GrowW(),
 				ui.Space(12),
 				trackBrightness.VAlignMiddle()
-			).BackColor(winCard).Padding(15).Margin(30, 0, 30, 4);
+			).BackColor(winCard).Padding(15).Margin(30, 0, 30, 4)
+			 .Rounded(8,BorderColor)
+			 
+			 ;
 
 			// Night Light Card
 			SmartUI_CardView_v1(
@@ -143,7 +149,7 @@ namespace smartUI_fluent_Layout
 			);
 
 			// BÖLÜM 2: Scale
-			ui.Row(lblSectionScale).Margin(30, 0+26, 0, 10);
+			ui.Row(lblSectionScale).Margin(30, 0 + 26, 0, 10);
 
 			// Scaling Card
 			var cmbScale = new ComboBox { Width = 150 }; cmbScale.Items.Add("125% (Rcommended)"); cmbScale.SelectedIndex = 0;
@@ -158,11 +164,15 @@ namespace smartUI_fluent_Layout
 				"\uE736",
 				"title",
 				"lorem ipsum dolor amet, bismillahir-rahmanirrahim.. ",
-				new ComboBox() 
+				new ComboBox()
 				);
 		}
 
-
+		private static void Flat_NoBorder( Button myBurger)
+		{
+			myBurger.FlatStyle = FlatStyle.Flat;
+			myBurger.FlatAppearance.BorderSize = 0;
+		}
 
 		private void InitControls()
 		{
@@ -236,15 +246,17 @@ namespace smartUI_fluent_Layout
 						lbl_icon.Padding(0, 0, 10, 0).VAlignMiddle().BackColor(Color.Transparent),
 						ui.Col(
 							lbl_title
-								/*.BackColor(Color.Orange)*/, 
+								/*.BackColor(Color.Orange)*/,
 							lbl_desc.WrapText()
-								//.BackColor(Color.Green)
+							//.BackColor(Color.Green)
 							).GrowW().Padding(0)
 					).VAlignMiddle().Padding(0).GrowW(),
 					ui.Space(12),
 					Control_atRightSide.VAlignMiddle()
 				)
-				.BackColor(Color.White).Padding(18).Margin(30, 0, 30, 4);
+				.BackColor(Color.White).Padding(18).Margin(30, 0, 30, 4)
+				.Rounded(8, Color.FromArgb(229, 229, 229))
+				 ;
 		}
 
 		/// <summary>
