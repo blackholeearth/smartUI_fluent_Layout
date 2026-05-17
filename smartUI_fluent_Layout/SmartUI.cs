@@ -82,7 +82,7 @@ namespace SmartLayoutEngine
 			// ŞİMDİ: Satırımız da artık zeki bir SmartGroup!
 			SmartGroup rowPanel = new SmartGroup
 			{
-				LayoutOrder = controls,
+				LayoutOrder = controls.ToList(),
 				IsVertical = false,
 				BackColor = Color.Transparent,
 				Margin = new Padding(0)
@@ -152,7 +152,7 @@ namespace SmartLayoutEngine
 
 		private Control CreateSmartGroup(bool isVertical, Control[] controls)
 		{
-			SmartGroup sg = new SmartGroup { LayoutOrder = controls, IsVertical = isVertical, Margin = new Padding(0) };
+			SmartGroup sg = new SmartGroup { LayoutOrder = controls.ToList(), IsVertical = isVertical, Margin = new Padding(0) };
 			foreach (var c in controls)
 			{
 				c.Anchor = AnchorStyles.Top | AnchorStyles.Left;
@@ -246,7 +246,7 @@ namespace SmartLayoutEngine
 			int currentY = sg.Padding.Top;
 			int maxWidth = 0, maxHeight = 0;
 
-			for (int i = 0; i < sg.LayoutOrder.Length; i++)
+			for (int i = 0; i < sg.LayoutOrder.Count; i++)
 			{
 				var c = sg.LayoutOrder[i];
 				ApplyPaddingLogic(c);
@@ -281,7 +281,7 @@ namespace SmartLayoutEngine
 					c.Left = props.AlignRightTarget.Right - c.Width;
 				}
 
-				int gap = (i == sg.LayoutOrder.Length - 1) ? 0 : itemSpacing;
+				int gap = (i == sg.LayoutOrder.Count - 1) ? 0 : itemSpacing;
 
 				if (sg.IsVertical)
 				{
@@ -491,7 +491,7 @@ namespace SmartLayoutEngine
 
 	public class SmartGroup : Panel
 	{
-		public Control[] LayoutOrder { get; set; }
+		public List<Control> LayoutOrder { get; set; }
 		public bool IsVertical { get; set; }
 		public SmartGroup() { BackColor = Color.Transparent; Margin = new Padding(0); }
 	}
