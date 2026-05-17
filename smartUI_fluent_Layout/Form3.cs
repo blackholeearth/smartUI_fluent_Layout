@@ -62,12 +62,9 @@ namespace smartUI_fluent_Layout
 			Color winText = Color.FromArgb(32, 32, 32); 
 			Color winSubText = Color.Gray; 
 
-			this.BackColor = winBg;
-			this.Font = new Font("Segoe UI Variable Display", 10); // Windows 11 Fontu
-
-
 			ui = new SmartUI(this);
-			
+
+			this.Font = new Font("Segoe UI Variable Display", 10); // Windows 11 Fontu
 			this.BackColor = winBg;
 			this.Text = "Ayarlar";
 			this.Size = new Size(1100, 700);
