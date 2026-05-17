@@ -71,7 +71,7 @@ namespace smartUI_fluent_Layout
 			// --- 2. let SMARTUI layout the controls  relative style. (This is the ART ) ---
 
 			// 1. Create Menu Button.
-			Button myBurger = new Button
+			Button myBurger = new()
 			{
 				Text = "\uE700", // Segoe MDL2 Assets Hamburger icon
 				Font = new Font("Segoe MDL2 Assets", 12),
@@ -175,7 +175,7 @@ namespace smartUI_fluent_Layout
 				Size = new Size(60, 60), 
 				BackColor = Color.LightGray,
 			};
-			System.Drawing.Drawing2D.GraphicsPath gp = new System.Drawing.Drawing2D.GraphicsPath();
+			System.Drawing.Drawing2D.GraphicsPath gp = new ();
 			gp.AddEllipse(0, 0, 60, 60); 
 			imgProfile.Region = new Region(gp); 
 			
@@ -220,9 +220,8 @@ namespace smartUI_fluent_Layout
 		}
 
 
-		//  --- Composite Controls . i did this for Example Reusable.
+		//  --- Composite Controls . Reusable. i did this for Example .
 		//   you can do it to .. share it here. if its general purpose.
-
 		public RowResult SmartUI_CardView_v1(Label lbl_icon, Label lbl_title, Label lbl_desc, Control Control_atRightSide)
 		{
 			return
