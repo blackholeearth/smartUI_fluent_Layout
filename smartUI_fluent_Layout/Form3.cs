@@ -71,18 +71,14 @@ namespace smartUI_fluent_Layout
 			this.Text = "Ayarlar";
 			this.Size = new Size(1100, 700);
 
-			// --- 1. create UI Controls by code (or just drag drop em into designer ) ---
+			// --- 1. create UI Controls in code (or just drag drop em into designer ) ---
 			InitControls();
 
-			// --- 2. let SMARTUI layout the controls  relative style. (This is the ART ) ---
+			// --- 2. let SMARTUI layout the controls  relative style.( the ART ) ---
 
 			// 1. Create Menu Button.
-			Button myBurger = new()
-			{
-				Text = "\uE700", // Segoe MDL2 Assets Hamburger icon
-				Font = new Font("Segoe MDL2 Assets", 12),
-				FlatStyle = FlatStyle.Flat,
-				Size = new Size(40, 40)
+			Button myBurger = new() {
+				Text = "\uE700",  Font = new Font("Segoe MDL2 Assets", 12), FlatStyle = FlatStyle.Flat, Size = new Size(40, 40)
 			};
 			Flat_NoBorder(myBurger);
 			this.Controls.Add(myBurger); // add it directly to form. 
@@ -93,13 +89,12 @@ namespace smartUI_fluent_Layout
 
 			// LEFT SIDEBAR
 			ui.SidePanel(Side.Left, 280,
-				ui.Group(
-					imgProfile,
+				ui.Group( 
+					imgProfile, 
 					ui.Col(lblUser, lblEmail).VAlignMiddle()
 				).VAlignMiddle().Padding(20),
 
 				txtSearch.GrowW(),
-
 				ui.Space(10),
 				ui.CreateSidebarItem_v1("\uE80F", "Giriş"),
 				ui.CreateSidebarItem_v1("\uE770", "Sistem", isSelected: true).BackColor(winCard),
