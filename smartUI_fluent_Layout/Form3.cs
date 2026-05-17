@@ -48,12 +48,12 @@ namespace smartUI_fluent_Layout
 
 		private void BuildUI__W11ModernSettings()
 		{
-			// Windows 11 Açık Tema Renkleri
-			Color winBg = Color.FromArgb(243, 243, 243); // Ana Arka Plan
-			Color winSidebar = Color.FromArgb(238, 238, 238); // Sidebar Arka Planı
-			Color winCard = Color.White; // Ayar Kartları
-			Color winText = Color.FromArgb(32, 32, 32); // Ana Metin
-			Color winSubText = Color.Gray; // Alt Metin
+			// Windows 11 Light Theme colors
+			Color winBg = Color.FromArgb(243, 243, 243); // Main Bg
+			Color winSidebar = Color.FromArgb(238, 238, 238); // Sidebar Bg
+			Color winCard = Color.White; // Setting card Bg
+			Color winText = Color.FromArgb(32, 32, 32); 
+			Color winSubText = Color.Gray; 
 
 			this.BackColor = winBg;
 			this.Font = new Font("Segoe UI Variable Display", 10); // Windows 11 Fontu
@@ -79,7 +79,7 @@ namespace smartUI_fluent_Layout
 				Size = new Size(40, 40)
 			};
 			myBurger.FlatAppearance.BorderSize = 0;
-			this.Controls.Add(myBurger); // Direkt forma ekle
+			this.Controls.Add(myBurger); // add it directly to form. 
 
 			// 2. tell SmartUI to use this button to open close SideBar .
 			ui.SetupResponsiveSidebar(myBurger, 850);
@@ -141,7 +141,7 @@ namespace smartUI_fluent_Layout
 			// BÖLÜM 2: Scale
 			ui.Row(lblSectionScale).Margin(30, 0+26, 0, 10);
 
-			// Scale Card
+			// Scaling Card
 			var cmbScale = new ComboBox { Width = 150 }; cmbScale.Items.Add("125% (Rcommended)"); cmbScale.SelectedIndex = 0;
 			SmartUI_CardView_v1(
 				"\uE744",
