@@ -321,8 +321,10 @@ public class SmartUI
 
 	private void ArrangeSideContent(SmartSidePanel sp, bool vertical)
 	{
-		ApplyPaddingLogic(sp);
-		int offset = 0; // Zero-Base!
+		ApplyPaddingLogic(sp); // Sidebar'ın kendi padding'ini bas (20px)
+
+		// 🌟 BAŞLANGIÇ NOKTASI: Artık 0 değil, Sidebar'ın üst/sol padding'inden başlıyoruz!
+		int offset = vertical ? sp.Padding.Top : sp.Padding.Left;
 
 		foreach (var c in sp.Content)
 		{
@@ -331,21 +333,29 @@ public class SmartUI
 
 			Padding m = GetScaledMargin(c);
 
-			if (vertical)
+			if (vertical) // Sol/Sağ Sidebar
 			{
-				c.Location = new Point(m.Left, offset + m.Top);
-				if (c.GetProps().GrowW) c.Width = sp.Width - m.Left - m.Right;
+				// 🌟 KONUM: Sidebar Padding'i + Kontrolün Margin'i
+				c.Location = new Point(sp.Padding.Left + m.Left, offset + m.Top);
+
+				// 🌟 GENİŞLİK SIKIŞTIRMASI: Sidebar'ın sağ/sol padding'ini de hesaptan düş!
+				if (c.GetProps().GrowW)
+					c.Width = sp.Width - sp.Padding.Left - sp.Padding.Right - m.Left - m.Right;
+
+				// Bir sonraki eleman için Y eksenini kaydır
 				offset += c.Height + m.Top + m.Bottom;
 			}
-			else
+			else // Alt Panel (Bottom Bar)
 			{
-				c.Top = (sp.Height - c.Height) / 2 + m.Top;
+				// Dikeyde tam ortalama ama Padding.Top ve Bottom'ı hesaba katarak
+				int availH = sp.Height - sp.Padding.Top - sp.Padding.Bottom;
+				c.Top = sp.Padding.Top + (availH - c.Height) / 2 + m.Top;
+
 				c.Left = offset + m.Left;
 				offset += c.Width + m.Left + m.Right;
 			}
 		}
 	}
-
 	// --- 🌟 NÜKLEER REFRESH LAYOUT MOTORU ---
 	public void RefreshLayout()
 	{
