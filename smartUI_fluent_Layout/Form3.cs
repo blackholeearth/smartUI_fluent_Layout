@@ -65,12 +65,12 @@ namespace smartUI_fluent_Layout
 			this.Text = "Ayarlar";
 			this.Size = new Size(1100, 700);
 
-			// --- 1. KONTROLLERİ OLUŞTUR VE GİYDİR (Amelelik kısmı bende) ---
+			// --- 1. create UI Controls by code (or just drag drop em into designer ) ---
 			InitControls();
 
-			// --- 2. SMARTUI İLE DİZİLİM (Sanat kısmı burada) ---
+			// --- 2. let SMARTUI layout the controls  relative style. (This is the ART ) ---
 
-			// 1. Hamburger butonunu oluştur (Üşenme, kopyala-yapıştır)
+			// 1. Create Menu Button.
 			Button myBurger = new Button
 			{
 				Text = "\uE700", // Segoe MDL2 Assets Hamburger icon
@@ -81,12 +81,12 @@ namespace smartUI_fluent_Layout
 			myBurger.FlatAppearance.BorderSize = 0;
 			this.Controls.Add(myBurger); // Direkt forma ekle
 
-			// 2. Motora bu butonu responsive işler için kullanmasını söyle
+			// 2. tell SmartUI to use this button to open close SideBar .
 			ui.SetupResponsiveSidebar(myBurger, 850);
 
 
 
-			// SOL SIDEBAR
+			// LEFT SIDEBAR
 			ui.SidePanel(Side.Left, 280,
 				ui.Group(
 					imgProfile, 
@@ -103,16 +103,16 @@ namespace smartUI_fluent_Layout
 			).BackColor(winSidebar);
 
 
-			// SAĞ İÇERİK
+			// RİGHT Content
 			//ui.Row(lblBreadcrumb).Margin(30, 20, 0, 0);
 			ui.Row(lblPageTitle)
 				.Margin(30-10, 0, 0, 10);
 
-			// BÖLÜM 1: Parlaklık
+			// BÖLÜM 1: Brightness
 			ui.Row(lblSectionBrightness)
 				.Margin(30, 10, 0, 10);
 
-			// Parlaklık Kartı
+			// Brightness Card
 			ui.Row(
 				ui.Group(
 					icoBrightness.Padding(0,0,10,0).VAlignMiddle().BackColor(Color.Transparent), 
@@ -122,7 +122,7 @@ namespace smartUI_fluent_Layout
 				trackBrightness.VAlignMiddle()
 			).BackColor(winCard).Padding(15).Margin(30, 0, 30, 4);
 
-			// Gece Işığı Kartı
+			// Night Light Card
 			SmartUI_CardView_v1(
 				icoNight,
 				lblNightTitle,
@@ -130,7 +130,7 @@ namespace smartUI_fluent_Layout
 				btnToggleNight
 			);
 
-			// HDR Kartı
+			// HDR Card
 			SmartUI_CardView_v1(
 				icoHDR,
 				lblHDRTitle,
@@ -138,11 +138,11 @@ namespace smartUI_fluent_Layout
 				icoArrowHDR
 			);
 
-			// BÖLÜM 2: Ölçek
+			// BÖLÜM 2: Scale
 			ui.Row(lblSectionScale).Margin(30, 0+26, 0, 10);
 
-			// Ölçek Kartı
-			var cmbScale = new ComboBox { Width = 150 }; cmbScale.Items.Add("125% (Önerilen)"); cmbScale.SelectedIndex = 0;
+			// Scale Card
+			var cmbScale = new ComboBox { Width = 150 }; cmbScale.Items.Add("125% (Rcommended)"); cmbScale.SelectedIndex = 0;
 			SmartUI_CardView_v1(
 				"\uE744",
 				"Ölçek",
@@ -153,9 +153,131 @@ namespace smartUI_fluent_Layout
 			SmartUI_CardView_v1(
 				"\uE736",
 				"title",
-				"lorem ipsum dolor amet, bismillahir-rahmanirrahim.. allahım yardım et.",
+				"lorem ipsum dolor amet, bismillahir-rahmanirrahim.. ",
 				new ComboBox() 
 				);
+		}
+
+
+
+		private void InitControls()
+		{
+			// 1. EKRANI KOMPLE TEMİZLE (Eskileri çöpe at)
+			this.Controls.Clear();
+
+			// Fontlar
+			Font mainFont = new Font("Segoe UI Variable Display", 10);
+			Font boldFont = new Font("Segoe UI Variable Display", 10, FontStyle.Bold);
+			Font iconFont = new Font("Segoe MDL2 Assets", 12);
+
+			// Profil
+			imgProfile = new PictureBox { 
+				Size = new Size(60, 60), 
+				BackColor = Color.LightGray,
+			};
+			System.Drawing.Drawing2D.GraphicsPath gp = new System.Drawing.Drawing2D.GraphicsPath();
+			gp.AddEllipse(0, 0, 60, 60); 
+			imgProfile.Region = new Region(gp); 
+			
+
+			lblUser = new Label { Text = "Some DEV", Font = boldFont, AutoSize = true };
+			lblEmail = new Label { Text = "somedev@mail.com", Font = new Font(mainFont.FontFamily, 8), ForeColor = Color.Gray, AutoSize = true };
+ 
+
+			// Sidebar
+			txtSearch = new TextBox { Text = "Bir ayar bulun", Width = 240, BackColor = Color.White, Font = mainFont };
+			lblHome = new Label(); lblSystem = new Label(); lblBluetooth = new Label(); lblNetwork = new Label();
+
+			// Başlıklar
+			//lblBreadcrumb = new Label { Text = "Sistem  >  Ekran", ForeColor = Color.Gray, Font = mainFont, AutoSize = true };
+			lblPageTitle = new Label { Text = "Sistem  >  Ekran", Font = new Font("Segoe UI Variable Display", 22, FontStyle.Bold), AutoSize = true };
+			lblSectionBrightness = new Label { Text = "Parlaklık ve renk", Font = boldFont, AutoSize = true };
+			lblSectionScale = new Label { Text = "Ölçek ve düzen", Font = boldFont, AutoSize = true };
+
+			// Kart 1: Parlaklık
+			icoBrightness = new Label { Text = "", Font = iconFont, AutoSize = true };
+			lblBrightnessTitle = new Label { Text = "Parlaklık", Font = boldFont, AutoSize = true };
+			lblBrightnessDesc = new Label { Text = "Yerleşik ekranın parlaklığını ayarla", ForeColor = Color.Gray, AutoSize = true };
+			trackBrightness = new TrackBar { Width = 200, Minimum = 0, Maximum = 100, Value = 70 , TickStyle = TickStyle.None,
+				Height = 22,
+				AutoSize = false,
+			};
+			
+
+			// Kart 2: Gece Işığı
+			icoNight = new Label { Text = "", Font = iconFont, AutoSize = true };
+			lblNightTitle = new Label { Text = "Gece ışığı", Font = boldFont, AutoSize = true };
+			lblNightDesc = new Label { Text = "Mavi ışığı engellemeye yardımcı olması için daha sıcak renkler kullanın", ForeColor = Color.Gray, AutoSize = true };
+			btnToggleNight = new Button { Text = "Kapalı", Width = 80, FlatStyle = FlatStyle.System };
+
+			// Kart 3: HDR
+			icoHDR = new Label { Text = "", Font = iconFont, AutoSize = true };
+			lblHDRTitle = new Label { Text = "HDR", Font = boldFont, AutoSize = true };
+			lblHDRDesc = new Label { Text = "HDR hakkında daha fazla bilgi", ForeColor = Color.DodgerBlue, AutoSize = true };
+			icoArrowHDR = new Label { Text = "", Font = iconFont, AutoSize = true };
+
+			
+		}
+
+
+		//  --- Composite Controls . i did this for Example Reusable.
+		//   you can do it to .. share it here. if its general purpose.
+
+		public RowResult SmartUI_CardView_v1(Label lbl_icon, Label lbl_title, Label lbl_desc, Control Control_atRightSide)
+		{
+			return
+				ui.Row
+				(
+					ui.Group
+					(
+						lbl_icon.Padding(0, 0, 10, 0).VAlignMiddle().BackColor(Color.Transparent),
+						ui.Col(
+							lbl_title
+								/*.BackColor(Color.Orange)*/, 
+							lbl_desc.WrapText()
+								//.BackColor(Color.Green)
+							).GrowW().Padding(0)
+					).VAlignMiddle().Padding(0).GrowW(),
+					ui.Space(12),
+					Control_atRightSide.VAlignMiddle()
+				)
+				.BackColor(Color.White).Padding(18).Margin(30, 0, 30, 4);
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="iconCode">Segoe MDL2 Assets -  PUA icon codes</param>
+		/// <param name="lbl_title"></param>
+		/// <param name="lbl_desc"></param>
+		/// <param name="Control_atRightSide"></param>
+		/// <returns></returns>
+		public RowResult SmartUI_CardView_v1(string iconCode, string title, string desc, Control Control_atRightSide)
+		{
+			// Fontlar
+			Font mainFont = new Font("Segoe UI Variable Display", 10);
+			Font boldFont = new Font("Segoe UI Variable Display", 10, FontStyle.Bold);
+			Font iconFont = new Font("Segoe MDL2 Assets", 12);
+
+			var lbl_icon = new Label { Text = iconCode, Font = iconFont, AutoSize = true };
+			var lbl_title = new Label { Text = title, Font = boldFont, AutoSize = true };
+			var lbl_desc = new Label { Text = desc, ForeColor = Color.Gray, AutoSize = true };
+
+
+			return SmartUI_CardView_v1(lbl_icon, lbl_title, lbl_desc, Control_atRightSide);
+
+			//return
+			//	ui.Row
+			//	(
+			//		ui.Group
+			//		(
+			//			lbl_icon.Padding(0, 0, 10, 0).VAlignMiddle().BackColor(Color.Transparent),
+			//			ui.Col(lbl_title, lbl_desc.WrapText()).GrowW().Padding(0)
+			//		).VAlignMiddle().Padding(0).GrowW(),
+			//		ui.Space(12),
+			//		Control_atRightSide.VAlignMiddle()
+			//	)
+			//	.BackColor(Color.White).Padding(12).Margin(30, 0, 30, 4);
 		}
 
 		// Sidebar öğesi oluşturmak için yardımcı (Tekrardan kaçınmak usta işidir)
@@ -219,121 +341,6 @@ namespace smartUI_fluent_Layout
 
 		}
 
-		private void InitControls()
-		{
-			// 1. EKRANI KOMPLE TEMİZLE (Eskileri çöpe at)
-			this.Controls.Clear();
-
-			// Fontlar
-			Font mainFont = new Font("Segoe UI Variable Display", 10);
-			Font boldFont = new Font("Segoe UI Variable Display", 10, FontStyle.Bold);
-			Font iconFont = new Font("Segoe MDL2 Assets", 12);
-
-			// Profil
-			imgProfile = new PictureBox { 
-				Size = new Size(60, 60), 
-				BackColor = Color.LightGray,
-			};
-			System.Drawing.Drawing2D.GraphicsPath gp = new System.Drawing.Drawing2D.GraphicsPath();
-			gp.AddEllipse(0, 0, 60, 60); 
-			imgProfile.Region = new Region(gp); 
-			
-
-			lblUser = new Label { Text = "Some DEV", Font = boldFont, AutoSize = true };
-			lblEmail = new Label { Text = "somedev@mail.com", Font = new Font(mainFont.FontFamily, 8), ForeColor = Color.Gray, AutoSize = true };
- 
-
-			// Sidebar
-			txtSearch = new TextBox { Text = "Bir ayar bulun", Width = 240, BackColor = Color.White, Font = mainFont };
-			lblHome = new Label(); lblSystem = new Label(); lblBluetooth = new Label(); lblNetwork = new Label();
-
-			// Başlıklar
-			//lblBreadcrumb = new Label { Text = "Sistem  >  Ekran", ForeColor = Color.Gray, Font = mainFont, AutoSize = true };
-			lblPageTitle = new Label { Text = "Sistem  >  Ekran", Font = new Font("Segoe UI Variable Display", 22, FontStyle.Bold), AutoSize = true };
-			lblSectionBrightness = new Label { Text = "Parlaklık ve renk", Font = boldFont, AutoSize = true };
-			lblSectionScale = new Label { Text = "Ölçek ve düzen", Font = boldFont, AutoSize = true };
-
-			// Kart 1: Parlaklık
-			icoBrightness = new Label { Text = "", Font = iconFont, AutoSize = true };
-			lblBrightnessTitle = new Label { Text = "Parlaklık", Font = boldFont, AutoSize = true };
-			lblBrightnessDesc = new Label { Text = "Yerleşik ekranın parlaklığını ayarla", ForeColor = Color.Gray, AutoSize = true };
-			trackBrightness = new TrackBar { Width = 200, Minimum = 0, Maximum = 100, Value = 70 , TickStyle = TickStyle.None,
-				Height = 22,
-				AutoSize = false,
-			};
-			
-
-			// Kart 2: Gece Işığı
-			icoNight = new Label { Text = "", Font = iconFont, AutoSize = true };
-			lblNightTitle = new Label { Text = "Gece ışığı", Font = boldFont, AutoSize = true };
-			lblNightDesc = new Label { Text = "Mavi ışığı engellemeye yardımcı olması için daha sıcak renkler kullanın", ForeColor = Color.Gray, AutoSize = true };
-			btnToggleNight = new Button { Text = "Kapalı", Width = 80, FlatStyle = FlatStyle.System };
-
-			// Kart 3: HDR
-			icoHDR = new Label { Text = "", Font = iconFont, AutoSize = true };
-			lblHDRTitle = new Label { Text = "HDR", Font = boldFont, AutoSize = true };
-			lblHDRDesc = new Label { Text = "HDR hakkında daha fazla bilgi", ForeColor = Color.DodgerBlue, AutoSize = true };
-			icoArrowHDR = new Label { Text = "", Font = iconFont, AutoSize = true };
-
-			
-		}
-
-		public RowResult SmartUI_CardView_v1(Label lbl_icon, Label lbl_title, Label lbl_desc, Control Control_atRightSide)
-		{
-			return
-				ui.Row
-				(
-					ui.Group
-					(
-						lbl_icon.Padding(0, 0, 10, 0).VAlignMiddle().BackColor(Color.Transparent),
-						ui.Col(
-							lbl_title
-								/*.BackColor(Color.Orange)*/, 
-							lbl_desc.WrapText()
-								//.BackColor(Color.Green)
-							).GrowW().Padding(0)
-					).VAlignMiddle().Padding(0).GrowW(),
-					ui.Space(12),
-					Control_atRightSide.VAlignMiddle()
-				)
-				.BackColor(Color.White).Padding(18).Margin(30, 0, 30, 4);
-		}
-
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="iconCode">Segoe MDL2 Assets -  PUA icon codes</param>
-		/// <param name="lbl_title"></param>
-		/// <param name="lbl_desc"></param>
-		/// <param name="Control_atRightSide"></param>
-		/// <returns></returns>
-		public RowResult SmartUI_CardView_v1(string iconCode, string title, string desc, Control Control_atRightSide)
-		{
-			// Fontlar
-			Font mainFont = new Font("Segoe UI Variable Display", 10);
-			Font boldFont = new Font("Segoe UI Variable Display", 10, FontStyle.Bold);
-			Font iconFont = new Font("Segoe MDL2 Assets", 12);
-
-			var lbl_icon = new Label { Text = iconCode, Font = iconFont, AutoSize = true };
-			var lbl_title = new Label { Text = title, Font = boldFont, AutoSize = true };
-			var lbl_desc = new Label { Text = desc, ForeColor = Color.Gray, AutoSize = true };
-
-
-			return SmartUI_CardView_v1(lbl_icon, lbl_title, lbl_desc, Control_atRightSide);
-
-			//return
-			//	ui.Row
-			//	(
-			//		ui.Group
-			//		(
-			//			lbl_icon.Padding(0, 0, 10, 0).VAlignMiddle().BackColor(Color.Transparent),
-			//			ui.Col(lbl_title, lbl_desc.WrapText()).GrowW().Padding(0)
-			//		).VAlignMiddle().Padding(0).GrowW(),
-			//		ui.Space(12),
-			//		Control_atRightSide.VAlignMiddle()
-			//	)
-			//	.BackColor(Color.White).Padding(12).Margin(30, 0, 30, 4);
-		}
 
 
 		private void Form3_Load(object sender, EventArgs e)
