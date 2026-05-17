@@ -24,7 +24,7 @@ namespace smartUI_fluent_Layout
 		// İçerik Başlıkları
 		private Label lblBreadcrumb, lblPageTitle, lblSectionBrightness, lblSectionScale;
 		// Kart 1: Parlaklık
-		private Label icoBrightness, lblBrightnessTitle, lblBrightnessDesc, icoArrowBrightness;
+		private Label icoBrightness, lblBrightnessTitle, lblBrightnessDesc;
 		private TrackBar trackBrightness;
 		// Kart 2: Gece Işığı
 		private Label icoNight, lblNightTitle, lblNightDesc;
@@ -32,7 +32,6 @@ namespace smartUI_fluent_Layout
 		// Kart 3: HDR
 		private Label icoHDR, lblHDRTitle, lblHDRDesc, icoArrowHDR;
 		// Kart 4: Ölçek
-		private Label icoScale, lblScaleTitle, lblScaleDesc;
 		private ComboBox cmbScale;
 
 
