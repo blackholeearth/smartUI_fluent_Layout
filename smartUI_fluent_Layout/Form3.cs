@@ -91,7 +91,6 @@ namespace smartUI_fluent_Layout
 			ui.SetupResponsiveSidebar(myBurger, 850);
 
 
-
 			// LEFT SIDEBAR
 			ui.SidePanel(Side.Left, 280,
 				ui.Group(
@@ -102,16 +101,15 @@ namespace smartUI_fluent_Layout
 				txtSearch.GrowW(),
 
 				ui.Space(10),
-				CreateSidebarItem("\uE80F", "Giriş"),
-				CreateSidebarItem("\uE770", "Sistem", isSelected: true).BackColor(winCard),
-				CreateSidebarItem("\uE702", "Bluetooth ve cihazlar"),
-				CreateSidebarItem("\uE774", "Ağ ve internet")
+				ui.CreateSidebarItem_v1("\uE80F", "Giriş"),
+				ui.CreateSidebarItem_v1("\uE770", "Sistem", isSelected: true).BackColor(winCard),
+				ui.CreateSidebarItem_v1("\uE702", "Bluetooth ve cihazlar"),
+				ui.CreateSidebarItem_v1("\uE774", "Ağ ve internet")
 			).BackColor(winSidebar)
-			.Padding(20);
+			.Padding(16,0,0,0);
 
 
 			// RİGHT Content
-			//ui.Row(lblBreadcrumb).Margin(30, 20, 0, 0);
 			ui.Row(lblPageTitle)
 				.Margin(30 - 10, 0, 0, 10);
 
@@ -120,52 +118,32 @@ namespace smartUI_fluent_Layout
 				.Margin(30, 10, 0, 10);
 
 			// Brightness Card
-			ui.Row(
-				ui.Group(
-					icoBrightness.Padding(0, 0, 10, 0).VAlignMiddle().BackColor(Color.Transparent),
-					ui.Col(lblBrightnessTitle, lblBrightnessDesc.WrapText()).GrowW().Padding(0)
-				).VAlignMiddle().GrowW(),
-				ui.Space(12),
-				trackBrightness.VAlignMiddle()
-			).BackColor(winCard).Padding(15).Margin(30, 0, 30, 4)
-			 .Rounded(8,BorderColor)
-			 
-			 ;
+			ui.SmartUI_CardView_v1(icoBrightness, lblBrightnessTitle, lblBrightnessDesc, trackBrightness);
+			//ui.Row(
+			//	ui.Group(
+			//		icoBrightness.Padding(0, 0, 10, 0).VAlignMiddle().BackColor(Color.Transparent),
+			//		ui.Col(lblBrightnessTitle, lblBrightnessDesc.WrapText()).GrowW().Padding(0)
+			//	).VAlignMiddle().GrowW(),
+			//	ui.Space(12),
+			//	trackBrightness.VAlignMiddle()
+			//).BackColor(winCard).Padding(15).Margin(30, 0, 30, 4)
+			// .Rounded(8,BorderColor) ;
+
 
 			// Night Light Card
-			SmartUI_CardView_v1(
-				icoNight,
-				lblNightTitle,
-				lblNightDesc,
-				btnToggleNight
-			);
+			ui.SmartUI_CardView_v1( icoNight, lblNightTitle, lblNightDesc, btnToggleNight );
 
 			// HDR Card
-			SmartUI_CardView_v1(
-				icoHDR,
-				lblHDRTitle,
-				lblHDRDesc,
-				icoArrowHDR
-			);
+			ui.SmartUI_CardView_v1( icoHDR, lblHDRTitle, lblHDRDesc, icoArrowHDR );
 
 			// BÖLÜM 2: Scale
 			ui.Row(lblSectionScale).Margin(30, 0 + 26, 0, 10);
 
 			// Scaling Card
 			var cmbScale = new ComboBox { Width = 150 }; cmbScale.Items.Add("125% (Rcommended)"); cmbScale.SelectedIndex = 0;
-			SmartUI_CardView_v1(
-				"\uE744",
-				"Ölçek",
-				"Metin, uygulama ve diğer öğelerin boyutunu değiştir",
-				cmbScale
-				);
+			ui.SmartUI_CardView_v1( "\uE744", "Ölçek", "Metin, uygulama ve diğer öğelerin boyutunu değiştir", cmbScale );
 
-			SmartUI_CardView_v1(
-				"\uE736",
-				"title",
-				"lorem ipsum dolor amet, bismillahir-rahmanirrahim.. ",
-				new ComboBox()
-				);
+		
 		}
 
 		private static void Flat_NoBorder( Button myBurger)
@@ -234,127 +212,127 @@ namespace smartUI_fluent_Layout
 		}
 
 
-		//  --- Composite Controls . Reusable. i did this for Example .
-		//   you can do it to .. share it here. if its general purpose.
-		public RowResult SmartUI_CardView_v1(Label lbl_icon, Label lbl_title, Label lbl_desc, Control Control_atRightSide)
-		{
-			return
-				ui.Row
-				(
-					ui.Group
-					(
-						lbl_icon.Padding(0, 0, 10, 0).VAlignMiddle().BackColor(Color.Transparent),
-						ui.Col(
-							lbl_title
-								/*.BackColor(Color.Orange)*/,
-							lbl_desc.WrapText()
-							//.BackColor(Color.Green)
-							).GrowW().Padding(0)
-					).VAlignMiddle().Padding(0).GrowW(),
-					ui.Space(12),
-					Control_atRightSide.VAlignMiddle()
-				)
-				.BackColor(Color.White).Padding(18).Margin(30, 0, 30, 4)
-				.Rounded(8, Color.FromArgb(229, 229, 229))
-				 ;
-		}
+		////  --- Composite Controls . Reusable. i did this for Example .
+		////   you can do it to .. share it here. if its general purpose.
+		//public RowResult SmartUI_CardView_v1(Label lbl_icon, Label lbl_title, Label lbl_desc, Control Control_atRightSide)
+		//{
+		//	return
+		//		ui.Row
+		//		(
+		//			ui.Group
+		//			(
+		//				lbl_icon.Padding(0, 0, 10, 0).VAlignMiddle().BackColor(Color.Transparent),
+		//				ui.Col(
+		//					lbl_title
+		//						/*.BackColor(Color.Orange)*/,
+		//					lbl_desc.WrapText()
+		//					//.BackColor(Color.Green)
+		//					).GrowW().Padding(0)
+		//			).VAlignMiddle().Padding(0).GrowW(),
+		//			ui.Space(12),
+		//			Control_atRightSide.VAlignMiddle()
+		//		)
+		//		.BackColor(Color.White).Padding(18).Margin(30, 0, 30, 4)
+		//		.Rounded(8, Color.FromArgb(229, 229, 229))
+		//		 ;
+		//}
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="iconCode">Segoe MDL2 Assets -  PUA icon codes</param>
-		/// <param name="lbl_title"></param>
-		/// <param name="lbl_desc"></param>
-		/// <param name="Control_atRightSide"></param>
-		/// <returns></returns>
-		public RowResult SmartUI_CardView_v1(string iconCode, string title, string desc, Control Control_atRightSide)
-		{
-			// Fontlar
-			Font mainFont = new Font("Segoe UI Variable Display", 10);
-			Font boldFont = new Font("Segoe UI Variable Display", 10, FontStyle.Bold);
-			Font iconFont = new Font("Segoe MDL2 Assets", 12);
+		///// <summary>
+		///// 
+		///// </summary>
+		///// <param name="iconCode">Segoe MDL2 Assets -  PUA icon codes</param>
+		///// <param name="lbl_title"></param>
+		///// <param name="lbl_desc"></param>
+		///// <param name="Control_atRightSide"></param>
+		///// <returns></returns>
+		//public RowResult SmartUI_CardView_v1(string iconCode, string title, string desc, Control Control_atRightSide)
+		//{
+		//	// Fontlar
+		//	Font mainFont = new Font("Segoe UI Variable Display", 10);
+		//	Font boldFont = new Font("Segoe UI Variable Display", 10, FontStyle.Bold);
+		//	Font iconFont = new Font("Segoe MDL2 Assets", 12);
 
-			var lbl_icon = new Label { Text = iconCode, Font = iconFont, AutoSize = true };
-			var lbl_title = new Label { Text = title, Font = boldFont, AutoSize = true };
-			var lbl_desc = new Label { Text = desc, ForeColor = Color.Gray, AutoSize = true };
-
-
-			return SmartUI_CardView_v1(lbl_icon, lbl_title, lbl_desc, Control_atRightSide);
-
-			//return
-			//	ui.Row
-			//	(
-			//		ui.Group
-			//		(
-			//			lbl_icon.Padding(0, 0, 10, 0).VAlignMiddle().BackColor(Color.Transparent),
-			//			ui.Col(lbl_title, lbl_desc.WrapText()).GrowW().Padding(0)
-			//		).VAlignMiddle().Padding(0).GrowW(),
-			//		ui.Space(12),
-			//		Control_atRightSide.VAlignMiddle()
-			//	)
-			//	.BackColor(Color.White).Padding(12).Margin(30, 0, 30, 4);
-		}
-
-		// Sidebar öğesi oluşturmak için yardımcı (Tekrardan kaçınmak usta işidir)
-		private Control CreateSidebarItem(string iconCode, string text, bool isSelected = false)
-		{
-			Label ico = new Label
-			{
-				Text = iconCode,
-				// Windows 11 ise "Segoe Fluent Icons", Windows 10 ise "Segoe MDL2 Assets"
-				Font = new Font("Segoe Fluent Icons", 12),
-				AutoSize = true,
-				BackColor = Color.Transparent
-			};
-
-			// Eğer font hala yüklenmiyorsa Windows'un yedeğine (MD2) düşelim
-			if (ico.Font.Name != "Segoe Fluent Icons")
-				ico.Font = new Font("Segoe MDL2 Assets", 12);
-
-			Label lbl = new Label
-			{
-				Text = text,
-				Font = new Font("Segoe UI Variable Display", 10, isSelected ? FontStyle.Bold : FontStyle.Regular),
-				AutoSize = true,
-				BackColor = Color.Transparent
-			};
+		//	var lbl_icon = new Label { Text = iconCode, Font = iconFont, AutoSize = true };
+		//	var lbl_title = new Label { Text = title, Font = boldFont, AutoSize = true };
+		//	var lbl_desc = new Label { Text = desc, ForeColor = Color.Gray, AutoSize = true };
 
 
-			var group = ui.Group(ico, lbl)
-				 .GrowW()
-				 .VAlignMiddle()
-				 .Padding(20, 12, 10, 12)
-				 .Margin(0);
+		//	return SmartUI_CardView_v1(lbl_icon, lbl_title, lbl_desc, Control_atRightSide);
 
-			if (isSelected) group.BackColor(Color.White);
+		//	//return
+		//	//	ui.Row
+		//	//	(
+		//	//		ui.Group
+		//	//		(
+		//	//			lbl_icon.Padding(0, 0, 10, 0).VAlignMiddle().BackColor(Color.Transparent),
+		//	//			ui.Col(lbl_title, lbl_desc.WrapText()).GrowW().Padding(0)
+		//	//		).VAlignMiddle().Padding(0).GrowW(),
+		//	//		ui.Space(12),
+		//	//		Control_atRightSide.VAlignMiddle()
+		//	//	)
+		//	//	.BackColor(Color.White).Padding(12).Margin(30, 0, 30, 4);
+		//}
+
+		//// Sidebar öğesi oluşturmak için yardımcı (Tekrardan kaçınmak usta işidir)
+		//private Control CreateSidebarItem_v1(string iconCode, string text, bool isSelected = false)
+		//{
+		//	Label ico = new Label
+		//	{
+		//		Text = iconCode,
+		//		// Windows 11 ise "Segoe Fluent Icons", Windows 10 ise "Segoe MDL2 Assets"
+		//		Font = new Font("Segoe Fluent Icons", 12),
+		//		AutoSize = true,
+		//		BackColor = Color.Transparent
+		//	};
+
+		//	// Eğer font hala yüklenmiyorsa Windows'un yedeğine (MD2) düşelim
+		//	if (ico.Font.Name != "Segoe Fluent Icons")
+		//		ico.Font = new Font("Segoe MDL2 Assets", 12);
+
+		//	Label lbl = new Label
+		//	{
+		//		Text = text,
+		//		Font = new Font("Segoe UI Variable Display", 10, isSelected ? FontStyle.Bold : FontStyle.Regular),
+		//		AutoSize = true,
+		//		BackColor = Color.Transparent
+		//	};
 
 
-			// 🌟 HOVER MANTIĞINI BURADA TANIMLIYORUZ (Fonksiyon olarak)
-			Action turnOnHover = () => {
-				if (!isSelected) group.BackColor = Color.FromArgb(230, 230, 230);
-			};
+		//	var group = ui.Group(ico, lbl)
+		//		 .GrowW()
+		//		 .VAlignMiddle()
+		//		 .Padding(10, 12, 10, 12)
+		//		 .Margin(0);
 
-			Action turnOffHover = () => {
-				if (!isSelected) group.BackColor = Color.Transparent;
-			};
+		//	if (isSelected) group.BackColor(Color.White);
 
-			// 1. Grubun kendi olayları
-			group.MouseEnter += (s, e) => turnOnHover();
-			group.MouseLeave += (s, e) => turnOffHover();
 
-			// 2. TIKLAMA: Çocukların (İkon/Yazı) olaylarını Gruba yönlendir
-			foreach (Control child in group.Controls)
-			{
-				child.MouseEnter += (s, e) => turnOnHover();
-				child.MouseLeave += (s, e) => turnOffHover();
+		//	// 🌟 HOVER MANTIĞINI BURADA TANIMLIYORUZ (Fonksiyon olarak)
+		//	Action turnOnHover = () => {
+		//		if (!isSelected) group.BackColor = Color.FromArgb(230, 230, 230);
+		//	};
 
-				// Opsiyonel: Çocuklara tıklandığında grubun Click eventini tetiklemek istersen:
-				// child.Click += (s, e) => group_Click(group, e); 
-			}
+		//	Action turnOffHover = () => {
+		//		if (!isSelected) group.BackColor = Color.Transparent;
+		//	};
 
-			return group;
+		//	// 1. Grubun kendi olayları
+		//	group.MouseEnter += (s, e) => turnOnHover();
+		//	group.MouseLeave += (s, e) => turnOffHover();
 
-		}
+		//	// 2. TIKLAMA: Çocukların (İkon/Yazı) olaylarını Gruba yönlendir
+		//	foreach (Control child in group.Controls)
+		//	{
+		//		child.MouseEnter += (s, e) => turnOnHover();
+		//		child.MouseLeave += (s, e) => turnOffHover();
+
+		//		// Opsiyonel: Çocuklara tıklandığında grubun Click eventini tetiklemek istersen:
+		//		// child.Click += (s, e) => group_Click(group, e); 
+		//	}
+
+		//	return group;
+
+		//}
 
 
 

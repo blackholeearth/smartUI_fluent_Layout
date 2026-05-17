@@ -32,7 +32,7 @@ public class LayoutProps
 	public bool IsRoundedHooked { get; set; } // Olayı (Event) iki kez bağlamamak
 }
 
-public class SmartUI
+public partial class SmartUI
 {
 	[DllImport("user32.dll")]
 	private static extern int SendMessage(IntPtr hWnd, Int32 wMsg, bool wParam, Int32 lParam);
@@ -173,7 +173,7 @@ public class SmartUI
 		Arrange(sg);
 		return sg;
 	}
-
+	 
 	// --- ZOM MOTORU ---
 	public void SetZoom(float zoomLevel)
 	{
@@ -495,7 +495,136 @@ public class SmartUI
 		// Z-ORDER FİNAL
 		if (_hamburgerBtn != null && _hamburgerBtn.Visible) _hamburgerBtn.BringToFront();
 	}
+
+
 }
+
+// --- composite Kontrols ---
+public partial class SmartUI
+{
+	//  --- Composite Controls . Reusable. i did this for Example .
+	//   you can do it to .. share it here. if its general purpose.
+	public RowResult SmartUI_CardView_v1(Label lbl_icon, Label lbl_title, Label lbl_desc, Control Control_atRightSide)
+	{
+		return
+			this.Row
+			(
+				this.Group
+				(
+					lbl_icon.Padding(0, 0, 10, 0).VAlignMiddle().BackColor(Color.Transparent),
+					this.Col(
+						lbl_title
+							/*.BackColor(Color.Orange)*/,
+						lbl_desc.WrapText()
+						//.BackColor(Color.Green)
+						).GrowW().Padding(0)
+				).VAlignMiddle().Padding(0).GrowW(),
+				this.Space(12),
+				Control_atRightSide.VAlignMiddle()
+			)
+			.BackColor(Color.White).Padding(18).Margin(30, 0, 30, 4)
+			.Rounded(8, Color.FromArgb(229, 229, 229))
+			 ;
+	}
+
+	/// <summary>
+	/// 
+	/// </summary>
+	/// <param name="iconCode">Segoe MDL2 Assets -  PUA icon codes</param>
+	/// <param name="lbl_title"></param>
+	/// <param name="lbl_desc"></param>
+	/// <param name="Control_atRightSide"></param>
+	/// <returns></returns>
+	public RowResult SmartUI_CardView_v1(string iconCode, string title, string desc, Control Control_atRightSide)
+	{
+		// Fontlar
+		Font mainFont = new Font("Segoe UI Variable Display", 10);
+		Font boldFont = new Font("Segoe UI Variable Display", 10, FontStyle.Bold);
+		Font iconFont = new Font("Segoe MDL2 Assets", 12);
+
+		var lbl_icon = new Label { Text = iconCode, Font = iconFont, AutoSize = true };
+		var lbl_title = new Label { Text = title, Font = boldFont, AutoSize = true };
+		var lbl_desc = new Label { Text = desc, ForeColor = Color.Gray, AutoSize = true };
+
+
+		return SmartUI_CardView_v1(lbl_icon, lbl_title, lbl_desc, Control_atRightSide);
+
+		//return
+		//	ui.Row
+		//	(
+		//		ui.Group
+		//		(
+		//			lbl_icon.Padding(0, 0, 10, 0).VAlignMiddle().BackColor(Color.Transparent),
+		//			ui.Col(lbl_title, lbl_desc.WrapText()).GrowW().Padding(0)
+		//		).VAlignMiddle().Padding(0).GrowW(),
+		//		ui.Space(12),
+		//		Control_atRightSide.VAlignMiddle()
+		//	)
+		//	.BackColor(Color.White).Padding(12).Margin(30, 0, 30, 4);
+	}
+
+	// Sidebar öğesi oluşturmak için yardımcı (Tekrardan kaçınmak usta işidir)
+	public Control CreateSidebarItem_v1(string iconCode, string text, bool isSelected = false)
+	{
+		Label ico = new Label
+		{
+			Text = iconCode,
+			// Windows 11 ise "Segoe Fluent Icons", Windows 10 ise "Segoe MDL2 Assets"
+			Font = new Font("Segoe Fluent Icons", 12),
+			AutoSize = true,
+			BackColor = Color.Transparent
+		};
+
+		// Eğer font hala yüklenmiyorsa Windows'un yedeğine (MD2) düşelim
+		if (ico.Font.Name != "Segoe Fluent Icons")
+			ico.Font = new Font("Segoe MDL2 Assets", 12);
+
+		Label lbl = new Label
+		{
+			Text = text,
+			Font = new Font("Segoe UI Variable Display", 10, isSelected ? FontStyle.Bold : FontStyle.Regular),
+			AutoSize = true,
+			BackColor = Color.Transparent
+		};
+
+
+		var group = this.Group(ico, lbl)
+			 .GrowW()
+			 .VAlignMiddle()
+			 .Padding(10, 12, 10, 12)
+			 .Margin(0);
+
+		if (isSelected) group.BackColor(Color.White);
+
+
+		// 🌟 HOVER MANTIĞINI BURADA TANIMLIYORUZ (Fonksiyon olarak)
+		Action turnOnHover = () => {
+			if (!isSelected) group.BackColor = Color.FromArgb(230, 230, 230);
+		};
+
+		Action turnOffHover = () => {
+			if (!isSelected) group.BackColor = Color.Transparent;
+		};
+
+		// 1. Grubun kendi olayları
+		group.MouseEnter += (s, e) => turnOnHover();
+		group.MouseLeave += (s, e) => turnOffHover();
+
+		// 2. TIKLAMA: Çocukların (İkon/Yazı) olaylarını Gruba yönlendir
+		foreach (Control child in group.Controls)
+		{
+			child.MouseEnter += (s, e) => turnOnHover();
+			child.MouseLeave += (s, e) => turnOffHover();
+
+			// Opsiyonel: Çocuklara tıklandığında grubun Click eventini tetiklemek istersen:
+			// child.Click += (s, e) => group_Click(group, e); 
+		}
+
+		return group;
+
+	}
+}
+
 
 // --- YARDIMCI SINIFLAR ---
 public enum Side { Left, Right, Bottom }
@@ -552,6 +681,7 @@ public class RowResult
 		if (Container != null) Container.Rounded(radius, borderColor, thickness);
 		return this;
 	}
+	 
 }
 
 // --- FLUENT API EXTENSIONLARI (String çöplüğü yok, RAM dostu) ---
