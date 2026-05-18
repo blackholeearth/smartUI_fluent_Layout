@@ -2,7 +2,7 @@
 
 # 🚀 SmartUI for WinForms
 
-**The Zero-Base, Fluent, and Responsive Layout Engine that makes WinForms feel like React, Flutter, or SwiftUI.**
+**Fluent, and Responsive Layout Engine that makes WinForms feel like Kotlin, Flutter, React.**
 
 SmartUI eliminates the 20-year-old struggles of `TableLayoutPanel`, broken anchors, ghost margins, and flickering screens. It allows you to build modern, responsive, DPI-aware, and pixel-perfect interfaces using a clean **Fluent API** entirely in C#.
 
