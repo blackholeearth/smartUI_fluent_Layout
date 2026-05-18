@@ -107,6 +107,16 @@ private void BuildUI()
 }
 ```
 
+### icons
+
+you can use "Segoe MDL2 Assets".
+
+font icon list: https://learn.microsoft.com/en-us/windows/apps/design/iconography/segoe-ui-symbol-font
+
+```` csharp
+ui.SmartUI_CardView_v1( "\uE706", "Title", "Description", button1);
+````
+
 ---
 
 ## 📚 API Reference Cheat Sheet
