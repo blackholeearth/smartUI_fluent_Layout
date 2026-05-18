@@ -16,7 +16,7 @@ namespace smartUI_fluent_Layout
 			//var f1 = new Form1(); f1.Show();
 			//var f2 = new Form2(); f2.Show();
 
-			Application.Run(new Form3());
+			Application.Run(new frm_w11Settings());
 
 
 			

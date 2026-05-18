@@ -1,6 +1,6 @@
 ﻿namespace smartUI_fluent_Layout
 {
-	partial class Form3
+	partial class frm_w11Settings
 	{
 		/// <summary>
 		/// Required designer variable.

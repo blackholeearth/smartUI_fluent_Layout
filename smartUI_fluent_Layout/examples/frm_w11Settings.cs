@@ -15,7 +15,7 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace smartUI_fluent_Layout
 {
-	public partial class Form3 : Form
+	public partial class frm_w11Settings : Form
 	{
 		// Sidebar Kontrolleri
 		private Label lblUser, lblEmail, lblHome, lblSystem, lblBluetooth, lblNetwork;
@@ -37,7 +37,7 @@ namespace smartUI_fluent_Layout
 
 		private SmartUI ui;
 		 
-		public Form3()
+		public frm_w11Settings()
 		{
 			InitializeComponent();
 
