@@ -502,6 +502,67 @@ public partial class SmartUI
 // --- composite Kontrols ---
 public partial class SmartUI
 {
+	// Sidebar öğesi oluşturmak için yardımcı (Tekrardan kaçınmak usta işidir)
+	public Control CreateSidebarItem_v1(string iconCode, string text, bool isSelected = false)
+	{
+		Label ico = new Label
+		{
+			Text = iconCode,
+			// Windows 11 ise "Segoe Fluent Icons", Windows 10 ise "Segoe MDL2 Assets"
+			Font = new Font("Segoe Fluent Icons", 12),
+			AutoSize = true,
+			BackColor = Color.Transparent
+		};
+
+		// Eğer font hala yüklenmiyorsa Windows'un yedeğine (MD2) düşelim
+		if (ico.Font.Name != "Segoe Fluent Icons")
+			ico.Font = new Font("Segoe MDL2 Assets", 12);
+
+		Label lbl = new Label
+		{
+			Text = text,
+			Font = new Font("Segoe UI Variable Display", 10, isSelected ? FontStyle.Bold : FontStyle.Regular),
+			AutoSize = true,
+			BackColor = Color.Transparent
+		};
+
+
+		var group = this.Group(ico, lbl)
+			 .GrowW()
+			 .VAlignMiddle()
+			 .Padding(10, 12, 10, 12)
+			 .Margin(0);
+
+		if (isSelected) group.BackColor(Color.White);
+
+
+		// 🌟 HOVER MANTIĞINI BURADA TANIMLIYORUZ (Fonksiyon olarak)
+		Action turnOnHover = () => {
+			if (!isSelected) group.BackColor = Color.FromArgb(230, 230, 230);
+		};
+
+		Action turnOffHover = () => {
+			if (!isSelected) group.BackColor = Color.Transparent;
+		};
+
+		// 1. Grubun kendi olayları
+		group.MouseEnter += (s, e) => turnOnHover();
+		group.MouseLeave += (s, e) => turnOffHover();
+
+		// 2. TIKLAMA: Çocukların (İkon/Yazı) olaylarını Gruba yönlendir
+		foreach (Control child in group.Controls)
+		{
+			child.MouseEnter += (s, e) => turnOnHover();
+			child.MouseLeave += (s, e) => turnOffHover();
+
+			// Opsiyonel: Çocuklara tıklandığında grubun Click eventini tetiklemek istersen:
+			// child.Click += (s, e) => group_Click(group, e); 
+		}
+
+		return group;
+
+	}
+
 	//  --- Composite Controls . Reusable. i did this for Example .
 	//   you can do it to .. share it here. if its general purpose.
 	public RowResult SmartUI_CardView_v1(Label lbl_icon, Label lbl_title, Label lbl_desc, Control Control_atRightSide)
@@ -563,65 +624,70 @@ public partial class SmartUI
 		//	.BackColor(Color.White).Padding(12).Margin(30, 0, 30, 4);
 	}
 
-	// Sidebar öğesi oluşturmak için yardımcı (Tekrardan kaçınmak usta işidir)
-	public Control CreateSidebarItem_v1(string iconCode, string text, bool isSelected = false)
+
+	//---suggested by gemini
+
+	/// <summary>
+	/// Kart gruplarının üzerine konulan standart Windows 11 alt başlığı.
+	/// </summary>
+	public RowResult SmartUI_SectionHeader_v1(string title)
+	{
+		Label lblTitle = new Label
+		{
+			Text = title,
+			Font = new Font("Segoe UI Variable Display", 10, FontStyle.Bold),
+			AutoSize = true,
+			ForeColor = Color.FromArgb(32, 32, 32)
+		};
+
+		return this.Row(lblTitle)
+				   .Margin(30, 20, 30, 5) // Üstten biraz açık, karta yakın
+				   .Padding(0);
+	}
+
+	/// <summary>
+	/// İçinde ikon olan, renkli ve yuvarlak köşeli modern uyarı kutusu.
+	/// </summary>
+	public RowResult SmartUI_AlertBox_v1(string iconCode, string message, Color bgColor, Color textColor)
 	{
 		Label ico = new Label
 		{
 			Text = iconCode,
-			// Windows 11 ise "Segoe Fluent Icons", Windows 10 ise "Segoe MDL2 Assets"
-			Font = new Font("Segoe Fluent Icons", 12),
+			Font = new Font("Segoe Fluent Icons", 14),
 			AutoSize = true,
-			BackColor = Color.Transparent
+			ForeColor = textColor
 		};
 
-		// Eğer font hala yüklenmiyorsa Windows'un yedeğine (MD2) düşelim
-		if (ico.Font.Name != "Segoe Fluent Icons")
-			ico.Font = new Font("Segoe MDL2 Assets", 12);
-
-		Label lbl = new Label
+		Label msg = new Label
 		{
-			Text = text,
-			Font = new Font("Segoe UI Variable Display", 10, isSelected ? FontStyle.Bold : FontStyle.Regular),
-			AutoSize = true,
-			BackColor = Color.Transparent
+			Text = message,
+			Font = new Font("Segoe UI", 10),
+			ForeColor = textColor
 		};
 
+		return this.Row(
+			this.Group(
+				ico.VAlignMiddle(),
+				this.Space(8),
+				msg.WrapText().VAlignMiddle().GrowW()
+			).GrowW().Padding(0)
+		)
+		.BackColor(bgColor)
+		.Padding(12, 12, 12, 12)
+		.Margin(30, 10, 30, 10)
+		.Rounded(6); // Jilet gibi yuvarlak köşeler
+	}
 
-		var group = this.Group(ico, lbl)
-			 .GrowW()
-			 .VAlignMiddle()
-			 .Padding(10, 12, 10, 12)
-			 .Margin(0);
+	/// <summary>
+	/// Araya ince, modern bir ayırıcı çizgi (Divider) çeker.
+	/// </summary>
+	public RowResult SmartUI_Divider_v1(int topMargin = 10, int bottomMargin = 10)
+	{
+		Panel line = new Panel { Height = 1, BackColor = Color.FromArgb(220, 220, 220) };
 
-		if (isSelected) group.BackColor(Color.White);
-
-
-		// 🌟 HOVER MANTIĞINI BURADA TANIMLIYORUZ (Fonksiyon olarak)
-		Action turnOnHover = () => {
-			if (!isSelected) group.BackColor = Color.FromArgb(230, 230, 230);
-		};
-
-		Action turnOffHover = () => {
-			if (!isSelected) group.BackColor = Color.Transparent;
-		};
-
-		// 1. Grubun kendi olayları
-		group.MouseEnter += (s, e) => turnOnHover();
-		group.MouseLeave += (s, e) => turnOffHover();
-
-		// 2. TIKLAMA: Çocukların (İkon/Yazı) olaylarını Gruba yönlendir
-		foreach (Control child in group.Controls)
-		{
-			child.MouseEnter += (s, e) => turnOnHover();
-			child.MouseLeave += (s, e) => turnOffHover();
-
-			// Opsiyonel: Çocuklara tıklandığında grubun Click eventini tetiklemek istersen:
-			// child.Click += (s, e) => group_Click(group, e); 
-		}
-
-		return group;
-
+		return this.Row(line.GrowW())
+				   .Margin(30, topMargin, 30, bottomMargin)
+				   .Padding(0);
 	}
 }
 
