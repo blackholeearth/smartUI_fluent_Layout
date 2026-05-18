@@ -62,9 +62,6 @@ namespace smartUI_fluent_Layout
 			Color winSubText = Color.Gray;
 			Color BorderColor = Color.FromArgb(229, 229, 229);
 
-
-			ui = new SmartUI(this);
-
 			this.Font = new Font("Segoe UI Variable Display", 10); // Windows 11 Fontu
 			this.BackColor = winBg;
 			this.Text = "Ayarlar";
@@ -74,6 +71,7 @@ namespace smartUI_fluent_Layout
 			InitControls();
 
 			// --- 2. let SMARTUI layout the controls  relative style.( the ART ) ---
+			ui = new SmartUI(this);
 
 			// 1. Create Menu Button.
 			Button myBurger = new() {
@@ -103,41 +101,33 @@ namespace smartUI_fluent_Layout
 			.Padding(16,0,0,0);
 
 
+
 			// RİGHT Content
-			ui.Row(lblPageTitle)
-				.Margin(30 - 10, 0, 0, 10);
+			ui.Row(lblPageTitle).Margin(30 - 10, 0, 0, 10);
 
 			// BÖLÜM 1: Brightness
-			ui.Row(lblSectionBrightness)
-				.Margin(30, 10, 0, 10);
+			//ui.Row(lblSectionBrightness).Margin(30, 10, 0, 10);
+			ui.SmartUI_SectionHeader_v1("Parlaklık ve renk");
 
 			// Brightness Card
 			ui.SmartUI_CardView_v1(icoBrightness, lblBrightnessTitle, lblBrightnessDesc, trackBrightness);
-			//ui.Row(
-			//	ui.Group(
-			//		icoBrightness.Padding(0, 0, 10, 0).VAlignMiddle().BackColor(Color.Transparent),
-			//		ui.Col(lblBrightnessTitle, lblBrightnessDesc.WrapText()).GrowW().Padding(0)
-			//	).VAlignMiddle().GrowW(),
-			//	ui.Space(12),
-			//	trackBrightness.VAlignMiddle()
-			//).BackColor(winCard).Padding(15).Margin(30, 0, 30, 4)
-			// .Rounded(8,BorderColor) ;
 
-
-			// Night Light Card
 			ui.SmartUI_CardView_v1( icoNight, lblNightTitle, lblNightDesc, btnToggleNight );
 
-			// HDR Card
 			ui.SmartUI_CardView_v1( icoHDR, lblHDRTitle, lblHDRDesc, icoArrowHDR );
 
 			// BÖLÜM 2: Scale
-			ui.Row(lblSectionScale).Margin(30, 0 + 26, 0, 10);
+			//ui.Row(lblSectionScale).Margin(30, 10 + 16, 0, 10);
+			ui.SmartUI_SectionHeader_v1("Ölçek ve düzen");
 
 			// Scaling Card
 			var cmbScale = new ComboBox { Width = 150 }; cmbScale.Items.Add("125% (Rcommended)"); cmbScale.SelectedIndex = 0;
 			ui.SmartUI_CardView_v1( "\uE744", "Ölçek", "Metin, uygulama ve diğer öğelerin boyutunu değiştir", cmbScale );
 
-		
+			ui.SmartUI_Divider_v1(); 
+			ui.SmartUI_AlertBox_v1("\uE946", "Windows Update güncellemeleri duraklatıldı.", Color.LightBlue, Color.DarkBlue);
+			
+
 		}
 
 		private static void Flat_NoBorder( Button myBurger)
@@ -199,7 +189,7 @@ namespace smartUI_fluent_Layout
 			// Kart 3: HDR
 			icoHDR = new Label { Text = "", Font = iconFont, AutoSize = true };
 			lblHDRTitle = new Label { Text = "HDR", Font = boldFont, AutoSize = true };
-			lblHDRDesc = new Label { Text = "HDR hakkında daha fazla bilgi", ForeColor = Color.DodgerBlue, AutoSize = true };
+			lblHDRDesc = new Label { Text = "HDR hakkında daha fazla bilgi", ForeColor = Color.DarkBlue, AutoSize = true };
 			icoArrowHDR = new Label { Text = "", Font = iconFont, AutoSize = true };
 
 			
