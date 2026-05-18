@@ -1,4 +1,4 @@
-![alt text](ss1.png)
+
 
 # 🚀 SmartUI for WinForms
 
@@ -7,6 +7,8 @@
 SmartUI eliminates the 20-year-old struggles of `TableLayoutPanel`, broken anchors, ghost margins, and flickering screens. It allows you to build modern, responsive, DPI-aware, and pixel-perfect interfaces using a clean **Fluent API** entirely in C#.
 
 > **"What you code is exactly what you see on the screen."**
+
+![alt text](ss1.png)
 
 ---
 
