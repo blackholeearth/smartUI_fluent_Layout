@@ -776,10 +776,8 @@ public static class UIExtensions
 		return c;
 	}
 
-	public static Control Pad(this Control c, int all) { c.GetProps().CustomPadding = new Padding(all); return c; }
-	public static Control Pad(this Control c, int l, int t, int r, int b) { c.GetProps().CustomPadding = new Padding(l, t, r, b); return c; }
-	public static Control Padding(this Control c, int all) => c.Pad(all);
-	public static Control Padding(this Control c, int l, int t, int r, int b) => c.Pad(l, t, r, b);
+	public static Control Padding(this Control c, int all) { c.GetProps().CustomPadding = new Padding(all); return c; }
+	public static Control Padding(this Control c, int l, int t, int r, int b) { c.GetProps().CustomPadding = new Padding(l, t, r, b); return c; }
 
 	public static Control Margin(this Control c, int all) { c.GetProps().CustomMargin = new Padding(all); return c; }
 	public static Control Margin(this Control c, int l, int t, int r, int b) { c.GetProps().CustomMargin = new Padding(l, t, r, b); return c; }
