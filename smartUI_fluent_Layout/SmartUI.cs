@@ -641,8 +641,9 @@ public partial class SmartUI
 		};
 
 		return this.Row(lblTitle)
-				   .Margin(30, 20, 30, 5) // Üstten biraz açık, karta yakın
-				   .Padding(0);
+				   .Margin(30, 30, 30, 10) // Üstten biraz açık, karta yakın
+										  //.Padding(0);
+				   ;
 	}
 
 	/// <summary>
