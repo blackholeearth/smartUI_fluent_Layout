@@ -1,7 +1,3 @@
-Here is the professional English version of the **SmartUI** README. It’s written for developers who appreciate efficiency and clever design over manual labor.
-
----
-
 # 🚀 SmartUI (The Wise Developer's Layout Engine)
 
 **A Fluent API-based layout engine for WinForms that eliminates the 20-year-old struggle of manual positioning. "What you code is what you get."**
