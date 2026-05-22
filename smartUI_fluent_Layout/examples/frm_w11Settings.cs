@@ -111,12 +111,9 @@ namespace smartUI_fluent_Layout
 			//ui.Row(lblSectionBrightness).Margin(30, 10, 0, 10);
 			ui.SmartUI_SectionHeader_v1("Parlaklık ve renk");
 
-			// Brightness Card
-			ui.SmartUI_CardView_v1(icoBrightness, lblBrightnessTitle, lblBrightnessDesc, trackBrightness);
-
-			ui.SmartUI_CardView_v1( icoNight, lblNightTitle, lblNightDesc, btnToggleNight );
-
-			ui.SmartUI_CardView_v1( icoHDR, lblHDRTitle, lblHDRDesc, icoArrowHDR );
+			ui.SmartUI_CardView_v1( icoBrightness, lblBrightnessTitle, lblBrightnessDesc, trackBrightness);
+			ui.SmartUI_CardView_v1( icoNight,      lblNightTitle, lblNightDesc, btnToggleNight );
+			ui.SmartUI_CardView_v1( icoHDR,        lblHDRTitle, lblHDRDesc, icoArrowHDR );
 
 			// BÖLÜM 2: Scale
 			//ui.Row(lblSectionScale).Margin(30, 10 + 16, 0, 10);
@@ -124,10 +121,10 @@ namespace smartUI_fluent_Layout
 
 			// Scaling Card
 			var cmbScale = new ComboBox { Width = 150 }; cmbScale.Items.Add("125% (Rcommended)"); cmbScale.SelectedIndex = 0;
-			ui.SmartUI_CardView_v1( "\uE744", "Ölçek", "Metin, uygulama ve diğer öğelerin boyutunu değiştir", cmbScale );
+			ui.SmartUI_CardView_v1( SegoeMDL2Icons.ResizeMouseMedium , "Ölçek", "Metin, uygulama ve diğer öğelerin boyutunu değiştir", cmbScale );
 
 			ui.SmartUI_Divider_v1(); 
-			ui.SmartUI_AlertBox_v1("\uE946", "Windows Update güncellemeleri duraklatıldı.", Color.LightBlue, Color.DarkBlue);
+			ui.SmartUI_AlertBox_v1( SegoeMDL2Icons.Info, "Windows Update güncellemeleri duraklatıldı.", Color.LightBlue, Color.DarkBlue);
 			
 
 		}
