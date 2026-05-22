@@ -75,7 +75,9 @@ namespace smartUI_fluent_Layout
 
 			// 1. Create Menu Button.
 			Button myBurger = new() {
-				Text = "\uE700",  Font = new Font("Segoe MDL2 Assets", 12), FlatStyle = FlatStyle.Flat, Size = new Size(40, 40)
+				Text = SegoeMDL2Icons.HamburgerMenu,  
+				Font = SegoeMDL2Icons._Font12F, 
+				FlatStyle = FlatStyle.Flat, Size = new Size(40, 40)
 			};
 			Flat_NoBorder(myBurger);
 			this.Controls.Add(myBurger); // add it directly to form. 
