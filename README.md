@@ -18,6 +18,8 @@ With SmartUI's **Component-Driven Architecture**, you can encapsulate complex la
 private void BuildUI__W11ModernSettings()
 {
     // 1. LEFT SIDEBAR (Responsive & Collapsible)
+    ui.SetupResponsiveSidebar(850); // Automatically handles the hamburger flyout!
+
     ui.SidePanel(Side.Left, 280,
         ui.Group( 
             imgProfile, 
@@ -27,27 +29,27 @@ private void BuildUI__W11ModernSettings()
         txtSearch.GrowW(),
         ui.Space(10),
         
-        ui.CreateSidebarItem_v1(SegoeMDL2Icons.Home, "Home"),
-        ui.CreateSidebarItem_v1(SegoeMDL2Icons.System, "System", isSelected: true).BackColor(winCard),
-        ui.CreateSidebarItem_v1(SegoeMDL2Icons.Bluetooth, "Bluetooth & devices"),
-        ui.CreateSidebarItem_v1(SegoeMDL2Icons.Globe, "Network & internet")
-    ).BackColor(winSidebar).Padding(16,0,0,0);
+        ui.SidebarItem_v1(SegoeMDL2Icons.Home, "Home"),
+        ui.SidebarItem_v1(SegoeMDL2Icons.System, "System", isSelected: true).BackColor(winCard),
+        ui.SidebarItem_v1(SegoeMDL2Icons.Bluetooth, "Bluetooth & devices"),
+        ui.SidebarItem_v1(SegoeMDL2Icons.Globe, "Network & internet")
+    ).BackColor(winSidebar).Padding(16, 0, 0, 0);
 
     // 2. RIGHT CONTENT
     ui.Row(lblPageTitle).Margin(20, 0, 0, 10);
 
     // SECTION 1: Brightness & Color
-    ui.SmartUI_SectionHeader_v1("Display & Brightness");
-    ui.SmartUI_CardView_v1(icoBrightness, lblBrightnessTitle, lblBrightnessDesc, trackBrightness);
-    ui.SmartUI_CardView_v1(icoNight, lblNightTitle, lblNightDesc, btnToggleNight);
-    ui.SmartUI_CardView_v1(icoHDR, lblHDRTitle, lblHDRDesc, icoArrowHDR);
+    ui.SectionHeader_v1("Display & Brightness");
+    ui.CardView_v1(icoBrightness, lblBrightnessTitle, lblBrightnessDesc, trackBrightness);
+    ui.CardView_v1(icoNight, lblNightTitle, lblNightDesc, btnToggleNight);
+    ui.CardView_v1(icoHDR, lblHDRTitle, lblHDRDesc, icoArrowHDR);
 
     // SECTION 2: Scale & Layout
-    ui.SmartUI_SectionHeader_v1("Scale & layout");
-    ui.SmartUI_CardView_v1(SegoeMDL2Icons.ResizeMouseMedium, "Scale", "Change the size of text, apps, and other items", cmbScale);
+    ui.SectionHeader_v1("Scale & layout");
+    ui.CardView_v1(SegoeMDL2Icons.ResizeMouseMedium, "Scale", "Change the size of text, apps, and other items", cmbScale);
 
-    ui.SmartUI_Divider_v1(); 
-    ui.SmartUI_AlertBox_v1(SegoeMDL2Icons.Info, "Windows Update is paused.", Color.LightBlue, Color.DarkBlue);
+    ui.Divider_v1(); 
+    ui.AlertBox_v1(SegoeMDL2Icons.Info, "Windows Update is paused.", Color.LightBlue, Color.DarkBlue);
 }
 ```
 *⏱️ **Blazing Fast:** The entire UI tree above builds, measures, and renders in just a few milliseconds!*
@@ -68,10 +70,10 @@ private void BuildUI__W11ModernSettings()
 
 ## 🎨 Reusable Components (Widgets)
 
-By extending the `SmartUI` class, you can create massive time-savers like `SmartUI_CardView_v1`. Inside these components, you leverage the layout engine:
+By extending the `SmartUI` class, you can create massive time-savers like `CardView_v1`. Inside these components, you leverage the layout engine:
 
 ```csharp
-public RowResult SmartUI_CardView_v1(Label lbl_icon, Label lbl_title, Label lbl_desc, Control Control_atRightSide)
+public RowResult CardView_v1(Label lbl_icon, Label lbl_title, Label lbl_desc, Control Control_atRightSide)
 {
     return this.Row(
         this.Group(
@@ -99,7 +101,7 @@ For a native Windows 11/10 feel, the engine pairs perfectly with the `Segoe MDL2
 
 ```csharp
 // Example using predefined PUA icon codes:
-ui.SmartUI_CardView_v1(SegoeMDL2Icons.Home, "Title", "Description", myControl);
+ui.CardView_v1(SegoeMDL2Icons.Home, "Title", "Description", myControl);
 ```
 
 ---
