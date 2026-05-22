@@ -1,3 +1,4 @@
+using smartUI_fluent_Layout;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -6,7 +7,6 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
-using System.Drawing.Drawing2D; // Bunu dosyanın en üstüne eklemeyi unutma!
 
 namespace SmartLayoutEngine;
 
@@ -74,6 +74,8 @@ public partial class SmartUI
 		if (!(c is SmartGroup) && !_originalSizes.ContainsKey(c)) _originalSizes[c] = c.Size;
 	}
 
+
+	
 	public void SetupResponsiveSidebar(Button btn, int threshold = 800)
 	{
 		_hamburgerBtn = btn;
@@ -82,6 +84,27 @@ public partial class SmartUI
 			_isSidebarFlyoutOpen = !_isSidebarFlyoutOpen;
 			RefreshLayout();
 		};
+	}
+	public void SetupResponsiveSidebar( int threshold = 800)
+	{
+		var btnMenu = CreateSidebar_MenuButton();
+		_form.Controls.Add(btnMenu);
+		
+		SetupResponsiveSidebar(btnMenu,threshold);
+	}
+	private static Button CreateSidebar_MenuButton()
+	{
+		// 1. Create Menu Button.
+		Button myBurger = new()
+		{
+			Text = SegoeMDL2Icons.HamburgerMenu,
+			Font = SegoeMDL2Icons._Font12F,
+			FlatStyle = FlatStyle.Flat,
+			Size = new Size(40, 40)
+		};
+		myBurger.FlatStyle = FlatStyle.Flat;
+		myBurger.FlatAppearance.BorderSize = 0;
+		return myBurger;
 	}
 
 	// --- YAPISAL METOTLAR ---
@@ -115,8 +138,6 @@ public partial class SmartUI
 		if (_form.IsHandleCreated) RefreshLayout();
 		return res;
 	}
-
-
 
 	public void Gap(int size)
 	{
@@ -174,7 +195,7 @@ public partial class SmartUI
 		return sg;
 	}
 	 
-	// --- ZOM MOTORU ---
+	// --- ZOOM MOTORU ---
 	public void SetZoom(float zoomLevel)
 	{
 		_zoomFactor = Math.Max(0.5f, Math.Min(3.0f, zoomLevel));
@@ -193,8 +214,8 @@ public partial class SmartUI
 	public void ZoomOut() => SetZoom(_zoomFactor - 0.1f);
 	public void ResetZoom() => SetZoom(1.0f);
 
-	// --- DİZİLİM YARDIMCILARI ---
 
+	// --- DİZİLİM YARDIMCILARI ---
 	private void ApplyPaddingLogic(Control c)
 	{
 		var props = c.GetProps();
@@ -217,7 +238,7 @@ public partial class SmartUI
 	}
 
 	// --- İÇ İÇE (NESTED) DÜZENLEYİCİ ---
-	public void Arrange(SmartGroup sg)
+	private void Arrange(SmartGroup sg)
 	{
 		if (sg == null) return;
 		ApplyPaddingLogic(sg);
@@ -356,6 +377,7 @@ public partial class SmartUI
 			}
 		}
 	}
+
 	// --- 🌟 NÜKLEER REFRESH LAYOUT MOTORU ---
 	public void RefreshLayout()
 	{
@@ -502,8 +524,8 @@ public partial class SmartUI
 // --- composite Kontrols ---
 public partial class SmartUI
 {
-	// Sidebar öğesi oluşturmak için yardımcı (Tekrardan kaçınmak usta işidir)
-	public Control CreateSidebarItem_v1(string iconCode, string text, bool isSelected = false)
+	// Sidebar öğesi oluşturmak için yardımcı 
+	public Control SidebarItem_v1(string iconCode, string text, bool isSelected = false)
 	{
 		Label ico = new Label
 		{
@@ -565,7 +587,7 @@ public partial class SmartUI
 
 	//  --- Composite Controls . Reusable. i did this for Example .
 	//   you can do it to .. share it here. if its general purpose.
-	public RowResult SmartUI_CardView_v1(Label lbl_icon, Label lbl_title, Label lbl_desc, Control Control_atRightSide)
+	public RowResult CardView_v1(Label lbl_icon, Label lbl_title, Label lbl_desc, Control Control_atRightSide)
 	{
 		return
 			this.Row
@@ -591,12 +613,12 @@ public partial class SmartUI
 	/// <summary>
 	/// 
 	/// </summary>
-	/// <param name="iconCode">Segoe MDL2 Assets -  PUA icon codes</param>
+	/// <param name="iconCode"> SegoeMDL2Icons. -  PUA icon codes</param>
 	/// <param name="lbl_title"></param>
 	/// <param name="lbl_desc"></param>
 	/// <param name="Control_atRightSide"></param>
 	/// <returns></returns>
-	public RowResult SmartUI_CardView_v1(string iconCode, string title, string desc, Control Control_atRightSide)
+	public RowResult CardView_v1(string iconCode, string title, string desc, Control Control_atRightSide)
 	{
 		// Fontlar
 		Font mainFont = new Font("Segoe UI Variable Display", 10);
@@ -608,7 +630,7 @@ public partial class SmartUI
 		var lbl_desc = new Label { Text = desc, ForeColor = Color.Gray, AutoSize = true };
 
 
-		return SmartUI_CardView_v1(lbl_icon, lbl_title, lbl_desc, Control_atRightSide);
+		return CardView_v1(lbl_icon, lbl_title, lbl_desc, Control_atRightSide);
 
 		//return
 		//	ui.Row
@@ -630,7 +652,7 @@ public partial class SmartUI
 	/// <summary>
 	/// Kart gruplarının üzerine konulan standart Windows 11 alt başlığı.
 	/// </summary>
-	public RowResult SmartUI_SectionHeader_v1(string title)
+	public RowResult SectionHeader_v1(string title)
 	{
 		Label lblTitle = new Label
 		{
@@ -649,7 +671,7 @@ public partial class SmartUI
 	/// <summary>
 	/// İçinde ikon olan, renkli ve yuvarlak köşeli modern uyarı kutusu.
 	/// </summary>
-	public RowResult SmartUI_AlertBox_v1(string iconCode, string message, Color bgColor, Color textColor)
+	public RowResult AlertBox_v1(string iconCode, string message, Color bgColor, Color textColor)
 	{
 		Label ico = new Label
 		{
@@ -682,7 +704,7 @@ public partial class SmartUI
 	/// <summary>
 	/// Araya ince, modern bir ayırıcı çizgi (Divider) çeker.
 	/// </summary>
-	public RowResult SmartUI_Divider_v1(int topMargin = 10, int bottomMargin = 10)
+	public RowResult Divider_v1(int topMargin = 10, int bottomMargin = 10)
 	{
 		Panel line = new Panel { Height = 1, BackColor = Color.FromArgb(220, 220, 220) };
 

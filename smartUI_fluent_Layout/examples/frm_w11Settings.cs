@@ -73,34 +73,23 @@ namespace smartUI_fluent_Layout
 			// --- 2. let SMARTUI layout the controls  relative style.( the ART ) ---
 			ui = new SmartUI(this);
 
-			// 1. Create Menu Button.
-			Button myBurger = new() {
-				Text = SegoeMDL2Icons.HamburgerMenu,  
-				Font = SegoeMDL2Icons._Font12F, 
-				FlatStyle = FlatStyle.Flat, Size = new Size(40, 40)
-			};
-			Flat_NoBorder(myBurger);
-			this.Controls.Add(myBurger); // add it directly to form. 
-
-			// 2. tell SmartUI to use this button to open close SideBar .
-			ui.SetupResponsiveSidebar(myBurger, 850);
-
-
 			// LEFT SIDEBAR
+			ui.SetupResponsiveSidebar(850);
+
 			ui.SidePanel(Side.Left, 280,
-				ui.Group( 
-					imgProfile, 
+				ui.Group(
+					imgProfile,
 					ui.Col(lblUser, lblEmail).VAlignMiddle()
 				).VAlignMiddle().Padding(20),
 
 				txtSearch.GrowW(),
 				ui.Space(10),
-				ui.CreateSidebarItem_v1(SegoeMDL2Icons.Home, "Giriş"),
-				ui.CreateSidebarItem_v1(SegoeMDL2Icons.System, "Sistem", isSelected: true).BackColor(winCard),
-				ui.CreateSidebarItem_v1(SegoeMDL2Icons.Bluetooth, "Bluetooth ve cihazlar"),
-				ui.CreateSidebarItem_v1(SegoeMDL2Icons.Globe, "Ağ ve internet")  /*  "\uE774" */
+				ui.SidebarItem_v1(SegoeMDL2Icons.Home, "Giriş"),
+				ui.SidebarItem_v1(SegoeMDL2Icons.System, "Sistem", isSelected: true).BackColor(winCard),
+				ui.SidebarItem_v1(SegoeMDL2Icons.Bluetooth, "Bluetooth ve cihazlar"),
+				ui.SidebarItem_v1(SegoeMDL2Icons.Globe, "Ağ ve internet")  /*  "\uE774" */
 			).BackColor(winSidebar)
-			.Padding(16,0,0,0);
+			.Padding(16, 0, 0, 0);
 
 
 
@@ -109,31 +98,28 @@ namespace smartUI_fluent_Layout
 
 			// BÖLÜM 1: Brightness
 			//ui.Row(lblSectionBrightness).Margin(30, 10, 0, 10);
-			ui.SmartUI_SectionHeader_v1("Parlaklık ve renk");
+			ui.SectionHeader_v1("Parlaklık ve renk");
 
-			ui.SmartUI_CardView_v1( icoBrightness, lblBrightnessTitle, lblBrightnessDesc, trackBrightness);
-			ui.SmartUI_CardView_v1( icoNight,      lblNightTitle, lblNightDesc, btnToggleNight );
-			ui.SmartUI_CardView_v1( icoHDR,        lblHDRTitle, lblHDRDesc, icoArrowHDR );
+			ui.CardView_v1(icoBrightness, lblBrightnessTitle, lblBrightnessDesc, trackBrightness);
+			ui.CardView_v1(icoNight, lblNightTitle, lblNightDesc, btnToggleNight);
+			ui.CardView_v1(icoHDR, lblHDRTitle, lblHDRDesc, icoArrowHDR);
 
 			// BÖLÜM 2: Scale
 			//ui.Row(lblSectionScale).Margin(30, 10 + 16, 0, 10);
-			ui.SmartUI_SectionHeader_v1("Ölçek ve düzen");
+			ui.SectionHeader_v1("Ölçek ve düzen");
 
 			// Scaling Card
 			var cmbScale = new ComboBox { Width = 150 }; cmbScale.Items.Add("125% (Rcommended)"); cmbScale.SelectedIndex = 0;
-			ui.SmartUI_CardView_v1( SegoeMDL2Icons.ResizeMouseMedium , "Ölçek", "Metin, uygulama ve diğer öğelerin boyutunu değiştir", cmbScale );
+			ui.CardView_v1(SegoeMDL2Icons.ResizeMouseMedium, "Ölçek", "Metin, uygulama ve diğer öğelerin boyutunu değiştir", cmbScale);
 
-			ui.SmartUI_Divider_v1(); 
-			ui.SmartUI_AlertBox_v1( SegoeMDL2Icons.Info, "Windows Update güncellemeleri duraklatıldı.", Color.LightBlue, Color.DarkBlue);
-			
+			ui.Divider_v1();
+			ui.AlertBox_v1(SegoeMDL2Icons.Info, "Windows Update güncellemeleri duraklatıldı.", Color.LightBlue, Color.DarkBlue);
+
 
 		}
 
-		private static void Flat_NoBorder( Button myBurger)
-		{
-			myBurger.FlatStyle = FlatStyle.Flat;
-			myBurger.FlatAppearance.BorderSize = 0;
-		}
+
+
 
 		private void InitControls()
 		{
