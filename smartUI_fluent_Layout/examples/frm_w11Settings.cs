@@ -95,10 +95,10 @@ namespace smartUI_fluent_Layout
 
 				txtSearch.GrowW(),
 				ui.Space(10),
-				ui.CreateSidebarItem_v1("\uE80F", "Giriş"),
-				ui.CreateSidebarItem_v1("\uE770", "Sistem", isSelected: true).BackColor(winCard),
-				ui.CreateSidebarItem_v1("\uE702", "Bluetooth ve cihazlar"),
-				ui.CreateSidebarItem_v1("\uE774", "Ağ ve internet")
+				ui.CreateSidebarItem_v1(SegoeMDL2Icons.Home, "Giriş"),
+				ui.CreateSidebarItem_v1(SegoeMDL2Icons.System, "Sistem", isSelected: true).BackColor(winCard),
+				ui.CreateSidebarItem_v1(SegoeMDL2Icons.Bluetooth, "Bluetooth ve cihazlar"),
+				ui.CreateSidebarItem_v1(SegoeMDL2Icons.Globe, "Ağ ve internet")  /*  "\uE774" */
 			).BackColor(winSidebar)
 			.Padding(16,0,0,0);
 
