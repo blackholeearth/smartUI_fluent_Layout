@@ -17,6 +17,8 @@ With SmartUI's **Component-Driven Architecture**, you can encapsulate complex la
 ```csharp
 private void BuildUI__W11ModernSettings()
 {
+    var ui = new SmartUI(this);
+
     // 1. LEFT SIDEBAR (Responsive & Collapsible)
     ui.SetupResponsiveSidebar(850); // Automatically handles the hamburger flyout!
 
