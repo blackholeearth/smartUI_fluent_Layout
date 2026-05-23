@@ -50,7 +50,9 @@ public class ModernToggle : CheckBox
 	{
 		e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
 
-		Color parentBg = Parent?.BackColor ?? Color.White;
+		// 🌟 ESKİ: Color parentBg = Parent?.BackColor ?? Color.White;
+		// 🌟 YENİ: Zinciri yukarı doğru tarayıp gerçek rengi alıyoruz.
+		Color parentBg = GetRealParentBackColor();
 		e.Graphics.Clear(parentBg);
 
 		float scale = DeviceDpi / 96f;
@@ -113,6 +115,37 @@ public class ModernToggle : CheckBox
 		path.AddArc(bounds.Right - diameter, bounds.Y, diameter, diameter, 270, 180);
 		path.CloseFigure();
 		return path;
+	}
+
+	// 🌟 BANANA FIX: Şeffaf parent zincirini kırıp gerçek katı rengi bulan metot
+	private Color GetRealParentBackColor_old()
+	{
+		Control p = Parent;
+		while (p != null && (p.BackColor == Color.Transparent || p.BackColor.A == 0))
+		{
+			p = p.Parent;
+		}
+		return p?.BackColor ?? SystemColors.Control;
+	}
+
+	/// <summary>
+	/// max 10 level up. or else default to SystemColors.Control
+	/// </summary>
+	/// <returns></returns>
+	private Color GetRealParentBackColor()
+	{
+		Control p = Parent;
+		int depth = 0;
+
+		// Maksimum 10 seviye yukarı çık, daha fazlasına izin verme
+		while (p != null && (p.BackColor == Color.Transparent || p.BackColor.A == 0) && depth < 10)
+		{
+			p = p.Parent;
+			depth++;
+		}
+
+		// Eğer 10 seviyede hala katı renk bulamadıysak varsayılan sistem rengini çek
+		return p?.BackColor ?? SystemColors.Control;
 	}
 }
 
