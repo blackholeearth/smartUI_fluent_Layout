@@ -1089,4 +1089,14 @@ public static class UIExtensions
 		return c;
 	}
 
+	// --- tooltip
+	private static readonly ToolTip _sharedToolTip = new (){
+		AutomaticDelay = 500, AutoPopDelay = 5000, InitialDelay = 500, ReshowDelay = 100 
+	};
+	public static Control ToolTip(this Control c, string text)
+	{
+		_sharedToolTip.SetToolTip(c, text);
+		return c;
+	}
+
 }
