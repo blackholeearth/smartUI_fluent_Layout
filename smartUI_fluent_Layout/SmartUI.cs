@@ -1048,7 +1048,7 @@ public static class UIExtensions
 
 
 	// textbox font textcolor(forecolor) extensions
-	public static Control Color(this Control c, Color color)
+	public static Control ForeColor(this Control c, Color color)
 	{
 		c.ForeColor = color;
 		return c;
