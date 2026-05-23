@@ -158,43 +158,110 @@ namespace smartUI_fluent_Layout.examples
 		}
 
 		// --- GÖREV YÖNETİCİSİ RENK YOĞUNLUĞU VE ÖZEL ÇİZİM SİSTEMİ ---
+		// --- RENK TANIMLAMALARI (BANANA FLUENT PALETTE) ---
+		private readonly Color colorHigh = Color.FromArgb(89, 199, 255);     // #59c7ff
+		private readonly Color colorMedium = Color.FromArgb(198, 235, 255);   // #c6ebff
+		private readonly Color colorLow = Color.FromArgb(226, 244, 255);      // #e2f4ff (Çok hafif pastel mavi)
+
+		// --- AKILLI DEĞER AYRIŞTIRICI (CULTURE-INVARIANT PARSER) ---
+		// "1.675,9 MB" veya "%1,4" gibi verileri işletim sistemi dilinden bağımsız olarak temizleyip Double'a çevirir
+		private double ParseToDouble(string value)
+		{
+			if (string.IsNullOrEmpty(value)) return 0;
+
+			string cleaned = value.Replace("%", "")
+								  .Replace("MB/sn", "")
+								  .Replace("MB", "")
+								  .Replace(" ", "")
+								  .Trim();
+
+			// Türkçe (1.675,9) veya İngilizce (1,675.9) ayrımını çözmek için
+			if (cleaned.Contains(".") && cleaned.Contains(","))
+			{
+				cleaned = cleaned.Replace(".", "").Replace(",", ".");
+			}
+			else if (cleaned.Contains(","))
+			{
+				cleaned = cleaned.Replace(",", ".");
+			}
+
+			if (double.TryParse(cleaned, System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out double result))
+			{
+				return result;
+			}
+			return 0;
+		}
+
+		// --- AKILLI RENK SEÇİCİ ---
+		// Kullanıcının belirttiği tam limitlere göre hücre rengini belirler
+		private Color GetCellColor(int columnIndex, double val)
+		{
+			if (val <= 0) return Color.Transparent;
+
+			if (columnIndex == 2) // CPU Kolonu
+			{
+				if (val > 10.0) return colorHigh;
+				if (val > 1.0) return colorMedium;
+				return colorLow;
+			}
+			else if (columnIndex == 3) // RAM Kolonu
+			{
+				if (val > 1000.0) return colorHigh;
+				if (val > 100.0) return colorMedium;
+				return colorLow;
+			}
+			else if (columnIndex == 4) // Disk Kolonu
+			{
+				if (val > 5.0) return colorHigh;
+				if (val > 1.0) return colorMedium;
+				return colorLow;
+			}
+			else if (columnIndex == 5) // Ağ (Net) Kolonu (Mock datada değerler düşük olduğu için limitleri buna göre bakar)
+			{
+				if (val > 2.0) return colorHigh;
+				if (val > 0.5) return colorMedium;
+				return colorLow;
+			}
+
+			return Color.Transparent;
+		}
+
+		// --- HÜCRE BOYAMA OLAYI (CELL PAINTING) ---
 		private void DgvProcesses_CellPainting(object sender, DataGridViewCellPaintingEventArgs e)
 		{
 			if (e.RowIndex < 0) return; // Başlık satırını boyama
 
-			// Sadece CPU, Bellek, Disk ve Ağ kolonlarını tonda boyayacağız (2, 3, 4, 5. kolonlar)
+			// CPU, RAM, Disk ve Net hücreleri (2, 3, 4 ve 5. kolonlar)
 			if (e.ColumnIndex >= 2 && e.ColumnIndex <= 5)
 			{
-				string cellValue = e.Value?.ToString() ?? "";
-				double intensity = CalculateIntensity(e.ColumnIndex, cellValue);
+				string cellVal = e.Value?.ToString() ?? "";
+				double val = ParseToDouble(cellVal);
 
-				if (intensity > 0)
+				Color cellBgColor = GetCellColor(e.ColumnIndex, val);
+
+				if (cellBgColor != Color.Transparent)
 				{
-					e.Handled = true; // WinForms varsayılan çizimini durdur
+					e.Handled = true; // WinForms varsayılan çizimini devral
 
-					Color baseBlue = Color.FromArgb(0, 120, 212); // Windows 11 Mavisi
-					Color cellColor = Color.FromArgb((int)(intensity * 210 + 25), baseBlue); // Yoğunluğa göre şeffaflık tonu
-
-					// Arka planı boya
-					using (SolidBrush bgBrush = new SolidBrush(cellColor))
+					// Hücre arka planını boya
+					using (SolidBrush bgBrush = new SolidBrush(cellBgColor))
 					{
 						e.Graphics.FillRectangle(bgBrush, e.CellBounds);
 					}
 
-					// Altındaki ve yanındaki grid çizgilerini çiz
+					// Izgara çizgilerini çiz
 					using (Pen gridPen = new Pen(dgvProcesses.GridColor))
 					{
 						e.Graphics.DrawLine(gridPen, e.CellBounds.Left, e.CellBounds.Bottom - 1, e.CellBounds.Right, e.CellBounds.Bottom - 1);
 						e.Graphics.DrawLine(gridPen, e.CellBounds.Right - 1, e.CellBounds.Top, e.CellBounds.Right - 1, e.CellBounds.Bottom);
 					}
 
-					// Yazıyı çiz
-					Color textColor = intensity > 0.4 ? Color.White : Color.Black; // Çok koyu tonlarda yazı beyaza döner
+					// Metni tam ortalayarak çiz (Görev Yöneticisi Light Temada yazılar siyahtır usta)
 					TextFormatFlags flags = TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis;
-					TextRenderer.DrawText(e.Graphics, cellValue, e.CellStyle.Font, e.CellBounds, textColor, flags);
+					TextRenderer.DrawText(e.Graphics, cellVal, e.CellStyle.Font, e.CellBounds, Color.FromArgb(32, 32, 32), flags);
 				}
 			}
-			// Eco sütununda yeşil yaprak simgesini basma
+			// Eco Sütununda Yaprak İkonu Çizimi (Aynı kalıyor)
 			else if (e.ColumnIndex == 1)
 			{
 				string cellValue = e.Value?.ToString() ?? "";
@@ -213,60 +280,29 @@ namespace smartUI_fluent_Layout.examples
 			}
 		}
 
-		// --- DEĞERE GÖRE TENSION (KOYULUK) ORANI HESAPLAYICI ---
-		private double CalculateIntensity(int colIdx, string val)
-		{
-			if (string.IsNullOrEmpty(val)) return 0;
-			try
-			{
-				string cleanVal = val.Replace("%", "").Replace("MB/sn", "").Replace("MB", "").Trim();
-				if (double.TryParse(cleanVal, out double num))
-				{
-					if (colIdx == 2) // CPU için: %100'e göre ölçekle
-					{
-						if (num == 0) return 0;
-						return Math.Min(1.0, num / 100.0 + 0.05);
-					}
-					else if (colIdx == 3) // Bellek için: 1500MB üzerini koyu yapalım
-					{
-						if (num > 1500) return 0.85; // Firefox gibi
-						if (num > 100) return 0.25;
-						if (num > 10) return 0.08;
-						return 0.02;
-					}
-					else if (colIdx == 4) // Disk için: 5 MB/sn üzerini koyulaştır
-					{
-						if (num > 5) return 0.60; // System gibi
-						if (num > 0) return 0.15;
-					}
-				}
-			}
-			catch { }
-			return 0;
-		}
 
 		// --- VERİ DOLDURUCU (MOCK DATA) ---
 		private void LoadMockData()
 		{
-			dgvProcesses.Rows.Add("zerotier-one_64.exe", "", "%0", "4,3 MB", "0 MB/sn", "0 MB/sn");
-			dgvProcesses.Rows.Add("Başlat (2)", "", "%0", "4,3 MB", "0 MB/sn", "0 MB/sn");
-			dgvProcesses.Rows.Add("Firefox (27)", "", "%0,5", "1.675,9 MB", "0,1 MB/sn", "0 MB/sn");
-			dgvProcesses.Rows.Add("GitHubDesktop.exe (4)", "Eco", "%0,1", "141,2 MB", "0,2 MB/sn", "0 MB/sn");
-			dgvProcesses.Rows.Add("Sublime Text (4)", "", "%0", "11,5 MB", "0 MB/sn", "0 MB/sn");
-			dgvProcesses.Rows.Add("System", "", "%1,4", "0,1 MB", "5,6 MB/sn", "0 MB/sn");
-			dgvProcesses.Rows.Add("Paint (2)", "", "%0", "143,9 MB", "0,1 MB/sn", "0 MB/sn");
-			dgvProcesses.Rows.Add("Everything", "", "%0", "60,5 MB", "0 MB/sn", "0 MB/sn");
+			dgvProcesses.Rows.Add("zerotier-one_64.exe",	"", "%0", "4,3 MB", "0 MB/sn", "0 MB/sn");
+			dgvProcesses.Rows.Add("Başlat (2)",				"", "%0", "4,3 MB", "0 MB/sn", "0 MB/sn");
+			dgvProcesses.Rows.Add("Firefox (27)",			"", "%0,5", "1.675,9 MB", "0,1 MB/sn", "0 MB/sn");
+			dgvProcesses.Rows.Add("GitHubDesktop.exe (4)",	"Eco", "%0,1", "141,2 MB", "0,2 MB/sn", "0 MB/sn");
+			dgvProcesses.Rows.Add("Sublime Text (4)",		"", "%0", "11,5 MB", "0 MB/sn", "0 MB/sn");
+			dgvProcesses.Rows.Add("System",					"", "%1,4", "0,1 MB", "5,6 MB/sn", "0 MB/sn");
+			dgvProcesses.Rows.Add("Paint (2)",				"", "%0", "143,9 MB", "0,1 MB/sn", "0 MB/sn");
+			dgvProcesses.Rows.Add("Everything",				"", "%0", "60,5 MB", "0 MB/sn", "0 MB/sn");
 		}
 
-		// --- SIDEBAR POPULATE METODU ---
-		public static SmartSidePanel Add( SmartSidePanel sp, Control c)
-		{
-			if (sp.Content == null) sp.Content = new List<Control>();
+		// --- SIDEBAR POPULATE METODU ---  moved to extensions as addcontent
+		//public static SmartSidePanel Add( SmartSidePanel sp, Control c)
+		//{
+		//	if (sp.Content == null) sp.Content = new List<Control>();
 
-			sp.Controls.Add(c);
-			sp.Content.Add(c);
-			return sp;
-		}
+		//	sp.Controls.Add(c);
+		//	sp.Content.Add(c);
+		//	return sp;
+		//}
 
 		private void PopulateSidebar(SmartSidePanel sp)
 		{
