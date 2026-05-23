@@ -1,3 +1,5 @@
+using smartUI_fluent_Layout.examples;
+
 namespace smartUI_fluent_Layout
 {
     internal static class Program
@@ -16,7 +18,9 @@ namespace smartUI_fluent_Layout
 			//var f1 = new Form1(); f1.Show();
 			//var f2 = new Form2(); f2.Show();
 
-			Application.Run(new frm_w11Settings());
+			//Application.Run(new frm_w11Settings());
+
+			Application.Run(new frm_TaskManager2());
 
 
 			
