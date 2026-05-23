@@ -12,4 +12,10 @@
     <Compile Remove="example1.cs" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Update="examples\frm_TaskManager - Copy.cs">
+      <SubType>Form</SubType>
+    </Compile>
+  </ItemGroup>
+
 </Project>

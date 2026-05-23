@@ -492,7 +492,7 @@ public partial class SmartUI
 		}
 	}
 
-	private void ArrangeSideContent(SmartSidePanel sp, bool vertical)
+	private void ArrangeSideContent_old(SmartSidePanel sp, bool vertical)
 	{
 		ApplyPaddingLogic(sp); // Sidebar'ın kendi padding'ini bas (20px)
 
@@ -524,6 +524,173 @@ public partial class SmartUI
 				int availH = sp.Height - sp.Padding.Top - sp.Padding.Bottom;
 				c.Top = sp.Padding.Top + (availH - c.Height) / 2 + m.Top;
 
+				c.Left = offset + m.Left;
+				offset += c.Width + m.Left + m.Right;
+			}
+		}
+	}
+
+	private void ArrangeSideContent_old2(SmartSidePanel sp, bool vertical)
+	{
+		ApplyPaddingLogic(sp);
+		int offset = vertical ? sp.Padding.Top : sp.Padding.Left;
+
+		if (vertical)
+		{
+			// 🌟 ÖN HAZIRLIK (BANANA): 
+			// İçerideki SmartGroup'ların (menü elemanlarının) kendi iç yerleşimlerini 
+			// birinci geçişten önce hesaplatıyoruz ki gerçek yükseklikleri (örn. 28px) netleşsin.
+			// Aksi halde WinForms varsayılanı olan 100px yüksekliği okuyup Spring'i 0 piksele sıkıştırıyordu!
+			foreach (var c in sp.Content)
+			{
+				if (c is SmartGroup sg) Arrange(sg);
+			}
+
+			int innerHeight = sp.Height - sp.Padding.Top - sp.Padding.Bottom;
+			int fixedH = 0;
+			int flexCount = 0;
+
+			// Birinci geçiş: Sabit yükseklikleri hesapla ve esnek eleman sayısını bul
+			foreach (var c in sp.Content)
+			{
+				Padding m = GetScaledMargin(c);
+				var p = c.GetProps();
+				if (p.GrowH || p.Spring)
+				{
+					flexCount++;
+					fixedH += m.Top + m.Bottom;
+				}
+				else
+				{
+					fixedH += c.Height + m.Top + m.Bottom;
+				}
+			}
+
+			// Kalan boşluğu esnek (Spring) elemanlara eşit olarak paylaştır
+			int flexH = flexCount > 0 ? Math.Max(0, (innerHeight - fixedH) / flexCount) : 0;
+
+			// İkinci geçiş: Elemanları yerleştir
+			foreach (var c in sp.Content)
+			{
+				ApplyPaddingLogic(c);
+				// Ön hazırlıkta Arrange yaptığımız için burada tekrar çağırmıyoruz
+
+				Padding m = GetScaledMargin(c);
+				var p = c.GetProps();
+
+				if (p.GrowH || p.Spring)
+				{
+					c.Height = flexH; // Yay gibi uzayan elemanın yüksekliği
+				}
+
+				c.Location = new Point(sp.Padding.Left + m.Left, offset + m.Top);
+
+				if (p.GrowW)
+				{
+					c.Width = sp.Width - sp.Padding.Left - sp.Padding.Right - m.Left - m.Right;
+				}
+
+				offset += c.Height + m.Top + m.Bottom;
+			}
+		}
+		else
+		{
+			// Yatay yerleşim (Değişmedi)
+			int availH = sp.Height - sp.Padding.Top - sp.Padding.Bottom;
+			foreach (var c in sp.Content)
+			{
+				ApplyPaddingLogic(c);
+				if (c is SmartGroup sg) Arrange(sg);
+
+				Padding m = GetScaledMargin(c);
+				c.Top = sp.Padding.Top + (availH - c.Height) / 2 + m.Top;
+				c.Left = offset + m.Left;
+				offset += c.Width + m.Left + m.Right;
+			}
+		}
+	}
+
+	private void ArrangeSideContent(SmartSidePanel sp, bool vertical)
+	{
+		ApplyPaddingLogic(sp);
+		int offset = vertical ? sp.Padding.Top : sp.Padding.Left;
+
+		if (vertical)
+		{
+			// 🌟 ÖN HAZIRLIK GENİŞLİK SENKRONİZASYONU (BANANA FIX)
+			// İçerideki SmartGroup'ların iç yerleşimini (Arrange) tetiklemeden önce, 
+			// genişliklerini (Width) o anki sidebar genişliğine göre eşitliyoruz. 
+			// Böylece Spring'ler ikonları görünmez kılacak şekilde dışarı fırlatmaz.
+			foreach (var c in sp.Content)
+			{
+				if (c is SmartGroup sg)
+				{
+					if (sg.GetProps().GrowW)
+					{
+						Padding m = GetScaledMargin(sg);
+						sg.Width = sp.Width - sp.Padding.Left - sp.Padding.Right - m.Left - m.Right;
+					}
+					Arrange(sg);
+				}
+			}
+
+			int innerHeight = sp.Height - sp.Padding.Top - sp.Padding.Bottom;
+			int fixedH = 0;
+			int flexCount = 0;
+
+			// Birinci geçiş: Sabit yükseklikleri hesapla
+			foreach (var c in sp.Content)
+			{
+				Padding m = GetScaledMargin(c);
+				var p = c.GetProps();
+				if (p.GrowH || p.Spring)
+				{
+					flexCount++;
+					fixedH += m.Top + m.Bottom;
+				}
+				else
+				{
+					fixedH += c.Height + m.Top + m.Bottom;
+				}
+			}
+
+			// Kalan boşluğu esnek (Spring) elemanlara eşit olarak paylaştır
+			int flexH = flexCount > 0 ? Math.Max(0, (innerHeight - fixedH) / flexCount) : 0;
+
+			// İkinci geçiş: Elemanları yerleştir
+			foreach (var c in sp.Content)
+			{
+				ApplyPaddingLogic(c);
+
+				Padding m = GetScaledMargin(c);
+				var p = c.GetProps();
+
+				if (p.GrowH || p.Spring)
+				{
+					c.Height = flexH;
+				}
+
+				c.Location = new Point(sp.Padding.Left + m.Left, offset + m.Top);
+
+				if (p.GrowW)
+				{
+					c.Width = sp.Width - sp.Padding.Left - sp.Padding.Right - m.Left - m.Right;
+				}
+
+				offset += c.Height + m.Top + m.Bottom;
+			}
+		}
+		else
+		{
+			// Yatay yerleşim (Değişmedi)
+			int availH = sp.Height - sp.Padding.Top - sp.Padding.Bottom;
+			foreach (var c in sp.Content)
+			{
+				ApplyPaddingLogic(c);
+				if (c is SmartGroup sg) Arrange(sg);
+
+				Padding m = GetScaledMargin(c);
+				c.Top = sp.Padding.Top + (availH - c.Height) / 2 + m.Top;
 				c.Left = offset + m.Left;
 				offset += c.Width + m.Left + m.Right;
 			}
@@ -676,6 +843,126 @@ public partial class SmartUI
 // --- composite Kontrols ---
 public partial class SmartUI
 {
+	/// <summary>
+	/// task manager w11 deki
+	/// </summary>
+	public Control SidebarItem_v2(string iconCode, string text, bool isSelected = false, 
+		bool isExpanded = true, bool showIndicator = false, Color? selectedBgColor = null)
+	{
+		// 1. Mavi gösterge çizgisi
+		Panel indicator = null;
+		if (showIndicator)
+		{
+			indicator = (Panel?)new Panel
+			{
+				Width = 3,
+				Height = 16,
+				BackColor = isSelected ? Color.FromArgb(0, 103, 192) : Color.Transparent
+			}.Rounded(1);
+		}
+
+		// 2. İkon Tanımlaması
+		Label ico = new Label
+		{
+			Text = iconCode,
+			Font = new Font("Segoe Fluent Icons", 11),
+			AutoSize = true,
+			BackColor = Color.Transparent
+		};
+
+		if (ico.Font.Name != "Segoe Fluent Icons")
+			ico.Font = new Font("Segoe MDL2 Assets", 11);
+
+		// 3. Metin Tanımlaması
+		Label lbl = new Label
+		{
+			Text = text,
+			Font = new Font("Segoe UI Variable Display", 9.5f, isSelected ? FontStyle.Bold : FontStyle.Regular),
+			AutoSize = true,
+			BackColor = Color.Transparent,
+			Visible = isExpanded
+		};
+
+		// 4. Grup Oluşturma (Açık/Kapalı Moduna Göre Akıllı Esneklik)
+		Control group;
+		if (isExpanded)
+		{
+			// --- AÇIK SİDEBAR MODU ---
+			if (showIndicator && indicator != null)
+			{
+				group = this.Group(
+					indicator.VAlignMiddle(), // Nudge yerine dikey ortalama
+					this.Space(8),
+					ico.VAlignMiddle(),
+					this.Space(12),
+					lbl.VAlignMiddle()
+				);
+			}
+			else
+			{
+				group = this.Group(
+					ico.VAlignMiddle(),
+					this.Space(12),
+					lbl.VAlignMiddle()
+				);
+			}
+		}
+		else
+		{
+			// --- KAPALI SİDEBAR MODU (Sadece İkon Ortalanmış) ---
+			if (showIndicator && indicator != null)
+			{
+				group = this.Group(
+					indicator.VAlignMiddle(),
+					this.Spring(), // Sol yay: İkonu sağa doğru iter
+					ico.VAlignMiddle(),
+					this.Spring()  // Sağ yay: İkonu sola doğru iter (Tam ortada sabitler!)
+				);
+			}
+			else
+			{
+				group = this.Group(
+					this.Spring(), // Sol yay
+					ico.VAlignMiddle(),
+					this.Spring()  // Sağ yay
+				);
+			}
+		}
+
+		group.GrowW()
+			 .Padding(0, 8, 0, 8)
+			 .Padding(0, 10, 0, 10)
+			 .Margin(4, 1, 4, 1)
+			 .Rounded(4);
+
+		if (isSelected)
+		{
+			Color selBg = selectedBgColor ?? Color.FromArgb(234, 234, 234);
+			group.BackColor(selBg);
+		}
+
+		// Hover Olayları
+		Action turnOnHover = () => {
+			if (!isSelected) group.BackColor = Color.FromArgb(243, 243, 243);
+		};
+
+		Action turnOffHover = () => {
+			if (!isSelected) group.BackColor = Color.Transparent;
+		};
+
+		group.MouseEnter += (s, e) => turnOnHover();
+		group.MouseLeave += (s, e) => turnOffHover();
+
+		foreach (Control child in group.Controls)
+		{
+			child.MouseEnter += (s, e) => turnOnHover();
+			child.MouseLeave += (s, e) => turnOffHover();
+		}
+
+		return group;
+	}
+	
+
 	// Sidebar öğesi oluşturmak için yardımcı 
 	public Control SidebarItem_v1(string iconCode, string text, bool isSelected = false)
 	{
@@ -931,6 +1218,16 @@ public static class UIExtensions
 	internal static ConditionalWeakTable<Control, LayoutProps> _rules = new ConditionalWeakTable<Control, LayoutProps>();
 	internal static LayoutProps GetProps(this Control c) => _rules.GetOrCreateValue(c);
 
+
+	//why its here in this class??
+	public static SmartSidePanel AddContent(this SmartSidePanel sp, Control c)
+	{
+		if (sp.Content == null) sp.Content = new List<Control>();
+		sp.Controls.Add(c);
+		sp.Content.Add(c);
+		return sp;
+	}
+
 	public static Control GrowW(this Control c) { c.GetProps().GrowW = true; return c; }
 	public static Control GrowH(this Control c) { c.GetProps().GrowH = true; return c; }
 	public static Control WrapText(this Control c) { c.GetProps().WrapText = true; return c; }
@@ -1062,6 +1359,12 @@ public static class UIExtensions
 	public static Control Bold(this Control c)
 	{
 		c.Font = new Font(c.Font, c.Font.Style | FontStyle.Bold);
+		return c;
+	}
+
+	public static Control Visible(this Control c,bool visible)
+	{
+		c.Visible = visible;
 		return c;
 	}
 
