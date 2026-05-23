@@ -1088,6 +1088,34 @@ public static class UIExtensions
 
 		return c;
 	}
+	public static Control HoverTone(this Control c, float amount = 0.1f)
+	{
+		Color originalColor = c.BackColor;
+
+		// YIQ Parlaklık Formülü ile arka planın açık mı koyu mu olduğunu tespit ediyoruz
+		float brightness = (originalColor.R * 0.299f + originalColor.G * 0.587f + originalColor.B * 0.114f) / 255f;
+
+		Color hoverColor;
+		if (brightness > 0.5f)
+		{
+			// Arka plan açıksa rengi hafifçe KOYULAŞTIR
+			int r = Math.Max(0, (int)(originalColor.R - (originalColor.R * amount)));
+			int g = Math.Max(0, (int)(originalColor.G - (originalColor.G * amount)));
+			int b = Math.Max(0, (int)(originalColor.B - (originalColor.B * amount)));
+			hoverColor = Color.FromArgb(originalColor.A, r, g, b);
+		}
+		else
+		{
+			// Arka plan koyuysa rengi hafifçe AÇIKLAŞTIR
+			int r = Math.Min(255, (int)(originalColor.R + (255 - originalColor.R) * amount));
+			int g = Math.Min(255, (int)(originalColor.G + (255 - originalColor.G) * amount));
+			int b = Math.Min(255, (int)(originalColor.B + (255 - originalColor.B) * amount));
+			hoverColor = Color.FromArgb(originalColor.A, r, g, b);
+		}
+
+		// Sizin rename ettiğiniz HoverBackColor metodunu doğrudan tetikliyoruz
+		return c.HoverBackColor(hoverColor);
+	}
 
 	// --- tooltip
 	private static readonly ToolTip _sharedToolTip = new (){
