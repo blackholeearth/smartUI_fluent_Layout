@@ -956,6 +956,8 @@ public static class UIExtensions
 
 	public static Control Margin(this Control c, int all) { c.GetProps().CustomMargin = new Padding(all); return c; }
 	public static Control Margin(this Control c, int l, int t, int r, int b) { c.GetProps().CustomMargin = new Padding(l, t, r, b); return c; }
+	public static Control MarginX(this Control c, int leftAndRight) => c.Margin(leftAndRight, c.Margin.Top, leftAndRight, c.Margin.Bottom);
+	public static Control MarginY(this Control c, int topAndBottom) => c.Margin(c.Margin.Left, topAndBottom, c.Margin.Right, topAndBottom);
 
 	public static Control Spacing(this Control c, int space) { c.GetProps().ItemSpacing = space; return c; }
 	public static Control BackColor(this Control c, Color color) { c.BackColor = color; return c; }
