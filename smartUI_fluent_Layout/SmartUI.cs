@@ -1099,4 +1099,22 @@ public static class UIExtensions
 		return c;
 	}
 
+
+	public static Control OnClick(this Control c, Action action)
+	{
+		if (action != null)
+		{
+			c.Click += (s, e) => action();
+		}
+		return c;
+	}
+	public static Control OnClick(this Control c, Action<object, EventArgs> action)
+	{
+		if (action != null)
+		{
+			c.Click += (s, e) => action(s, e);
+		}
+		return c;
+	}
+
 }
