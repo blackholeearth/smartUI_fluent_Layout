@@ -123,7 +123,7 @@ namespace smartUI_fluent_Layout
 			ui.Row(
 				SmartUI_Button_v1(ui, new Button() { Text = "hello" }).Margin(20).VAlignMiddle(),
 				SmartUI_TextBox_v1(ui, new TextBox() { Text = "hello" }).Margin(20).VAlignMiddle(),
-				new ModernToggle().Margin(20).VAlignMiddle()
+				new ModernToggle() { Text="hello"}.Margin(20).VAlignMiddle()
 			)
 			.Padding(20);
 		}
