@@ -381,7 +381,7 @@ public partial class SmartUI
 		}
 	}
 
-	public void Arrange(SmartGroup sg)
+	public void Arrange_old2(SmartGroup sg)
 	{
 		if (sg == null) return;
 		ApplyPaddingLogic(sg);
@@ -491,6 +491,117 @@ public partial class SmartUI
 			}
 		}
 	}
+	public void Arrange(SmartGroup sg)
+	{
+		if (sg == null) return;
+		ApplyPaddingLogic(sg);
+
+		var sgProps = sg.GetProps();
+
+		// 🌟 BANANA PARADOKS ÇÖZÜMÜ: 
+		// Eğer grubun içinde bir Spring (yay) varsa, dairesel hesaplama döngüsünü 
+		// engellemek için AutoSize özelliğini kesin olarak kapatıyoruz.
+		bool hasSpring = sg.LayoutOrder.Any(child => child.GetProps().Spring);
+		sg.AutoSize = !sgProps.GrowW && !hasSpring;
+
+		int innerWidth = sg.Width - sg.Padding.Left - sg.Padding.Right;
+		if (innerWidth <= 10) innerWidth = Scale(300);
+
+		int itemSpacing = sgProps.ItemSpacing.HasValue ? Scale(sgProps.ItemSpacing.Value) : 0;
+
+		foreach (var c in sg.LayoutOrder)
+		{
+			var p = c.GetProps();
+			if (p.MatchWidthTarget != null) c.Width = p.MatchWidthTarget.Width;
+		}
+
+		int fixedW = 0, flexCount = 0;
+		if (!sg.IsVertical)
+		{
+			foreach (var c in sg.LayoutOrder)
+			{
+				Padding m = GetScaledMargin(c);
+				fixedW += m.Left + m.Right;
+				var p = c.GetProps();
+				if (p.GrowW || p.Spring) flexCount++;
+				else fixedW += c.Width + itemSpacing;
+			}
+		}
+		int flexW = flexCount > 0 ? Math.Max(0, (innerWidth - fixedW) / flexCount) : innerWidth;
+
+		int currentX = sg.Padding.Left;
+		int currentY = sg.Padding.Top;
+		int maxWidth = 0, maxHeight = 0;
+
+		for (int i = 0; i < sg.LayoutOrder.Count; i++)
+		{
+			var c = sg.LayoutOrder[i];
+			ApplyPaddingLogic(c);
+			Padding m = GetScaledMargin(c);
+			var props = c.GetProps();
+
+			int childTargetWidth = sg.IsVertical ? (innerWidth - m.Left - m.Right) : ((props.GrowW || props.Spring) ? flexW : c.Width);
+
+			if (props.GrowW || props.Spring || sg.IsVertical)
+			{
+				c.Width = childTargetWidth;
+				if (c is SmartGroup nested) { nested.AutoSize = false; nested.Width = childTargetWidth; }
+			}
+
+			if (c is Label lbl && props.WrapText)
+			{
+				lbl.AutoSize = false;
+				lbl.MaximumSize = new Size(childTargetWidth, 0);
+				lbl.AutoSize = true;
+				Size preferred = lbl.GetPreferredSize(new Size(childTargetWidth, 0));
+				lbl.Size = new Size(childTargetWidth, preferred.Height);
+			}
+
+			if (c is SmartGroup n) Arrange(n);
+
+			c.Left = currentX + m.Left;
+			c.Top = currentY + m.Top;
+
+			if (props.AlignRightTarget != null)
+			{
+				c.Left = props.AlignRightTarget.Right - c.Width - m.Right;
+			}
+
+			int gap = (i == sg.LayoutOrder.Count - 1) ? 0 : itemSpacing;
+
+			if (sg.IsVertical)
+			{
+				currentY += m.Top + c.Height + m.Bottom + gap;
+				maxWidth = Math.Max(maxWidth, m.Left + c.Width + m.Right);
+			}
+			else
+			{
+				currentX += m.Left + c.Width + m.Right + gap;
+				if (!props.Spring) maxHeight = Math.Max(maxHeight, m.Top + c.Height + m.Bottom);
+			}
+		}
+
+		sg.Height = (sg.IsVertical ? currentY : maxHeight + sg.Padding.Top) + sg.Padding.Bottom;
+
+		// 🌟 BANANA PARADOKS ÇÖZÜMÜ: 
+		// İçerisinde yay olan grupların genişliğini otomatik büzüştürmüyoruz, bizim verdiğimiz sabit boyutta tutuyoruz.
+		if (!sg.IsVertical && !sgProps.GrowW && !hasSpring)
+		{
+			sg.Width = currentX + sg.Padding.Right;
+		}
+
+		if (!sg.IsVertical)
+		{
+			foreach (var c in sg.LayoutOrder)
+			{
+				var p = c.GetProps();
+				Padding m = GetScaledMargin(c);
+				if (p.VAlign == 1) c.Top = sg.Padding.Top + (sg.Height - sg.Padding.Top - sg.Padding.Bottom - c.Height) / 2;
+				else if (p.VAlign == 2) c.Top = sg.Height - sg.Padding.Bottom - c.Height - m.Bottom;
+			}
+		}
+	}
+
 
 	private void ArrangeSideContent_old(SmartSidePanel sp, bool vertical)
 	{
@@ -837,7 +948,12 @@ public partial class SmartUI
 		if (_hamburgerBtn != null && _hamburgerBtn.Visible) _hamburgerBtn.BringToFront();
 	}
 
-
+	//
+	public void FreezeRedraw()
+	{
+		if (_form != null && _form.IsHandleCreated)
+			SendMessage(_form.Handle, WM_SETREDRAW, false, 0);
+	}
 }
 
 // --- composite Kontrols ---
@@ -846,7 +962,7 @@ public partial class SmartUI
 	/// <summary>
 	/// task manager w11 deki
 	/// </summary>
-	public Control SidebarItem_v2(string iconCode, string text, bool isSelected = false, 
+	public Control SidebarItem_v2_old(string iconCode, string text, bool isSelected = false, 
 		bool isExpanded = true, bool showIndicator = false, Color? selectedBgColor = null)
 	{
 		// 1. Mavi gösterge çizgisi
@@ -961,7 +1077,394 @@ public partial class SmartUI
 
 		return group;
 	}
-	
+
+	public Control SidebarItem_v2_old2(string iconCode, string text, bool isSelected = false, 
+		bool isExpanded = true, bool showIndicator = false, Color? selectedBgColor = null)
+	{
+		// 1. Mavi gösterge çizgisi (Indicator)
+		Panel indicator = null;
+		if (showIndicator)
+		{
+			indicator = (Panel?)new Panel
+			{
+				Width = 3,
+				Height = 16,
+				BackColor = isSelected ? Color.FromArgb(0, 103, 192) : Color.Transparent
+			}.Rounded(1);
+		}
+
+		// 2. İkon Tanımlaması
+		Label ico = new Label
+		{
+			Text = iconCode,
+			Font = new Font("Segoe Fluent Icons", 11),
+			AutoSize = true,
+			BackColor = Color.Transparent
+		};
+
+		if (ico.Font.Name != "Segoe Fluent Icons")
+			ico.Font = new Font("Segoe MDL2 Assets", 11);
+
+		// 3. Metin Tanımlaması
+		Label lbl = new Label
+		{
+			Text = text,
+			Font = new Font("Segoe UI Variable Display", 9.5f, isSelected ? FontStyle.Bold : FontStyle.Regular),
+			AutoSize = true,
+			BackColor = Color.Transparent,
+			Visible = isExpanded
+		};
+
+		// 4. Grup Oluşturma (Açık/Kapalı Moduna Göre Esneklik)
+		Control group;
+		if (isExpanded)
+		{
+			// --- AÇIK SİDEBAR MODU ---
+			if (showIndicator && indicator != null)
+			{
+				group = this.Group(
+					indicator.VAlignMiddle(),
+					this.Space(8),
+					ico.VAlignMiddle(),
+					this.Space(12),
+					lbl.VAlignMiddle()
+				);
+			}
+			else
+			{
+				group = this.Group(
+					ico.VAlignMiddle(),
+					this.Space(12),
+					lbl.VAlignMiddle()
+				);
+			}
+		}
+		else
+		{
+			// --- KAPALI SİDEBAR MODU (Sadece İkon Ortalanmış) ---
+			if (showIndicator && indicator != null)
+			{
+				group = this.Group(
+					indicator.VAlignMiddle(),
+					this.Spring(), // Sol esneklik yayı
+					ico.VAlignMiddle(),
+					this.Spring()  // Sağ esneklik yayı
+				);
+			}
+			else
+			{
+				group = this.Group(
+					this.Spring(), // Sol esneklik yayı
+					ico.VAlignMiddle(),
+					this.Spring()  // Sağ esneklik yayı
+				);
+			}
+		}
+
+		group.GrowW()
+			 .Padding(0, 8, 0, 8)
+			 .Margin(4, 1, 4, 1)
+			 .Rounded(4);
+
+		if (isSelected)
+		{
+			Color selBg = selectedBgColor ?? Color.FromArgb(234, 234, 234);
+			group.BackColor(selBg);
+		}
+
+		// Hover Olayları
+		Action turnOnHover = () => {
+			if (!isSelected) group.BackColor = Color.FromArgb(243, 243, 243);
+		};
+
+		Action turnOffHover = () => {
+			if (!isSelected) group.BackColor = Color.Transparent;
+		};
+
+		group.MouseEnter += (s, e) => turnOnHover();
+		group.MouseLeave += (s, e) => turnOffHover();
+
+		// 🌟 TIKLAMA YÖNLENDİRİCİSİ (Çocuk kontrol tıklandığında grubun tıklandığını bildirir)
+		foreach (Control child in group.Controls)
+		{
+			child.MouseEnter += (s, e) => turnOnHover();
+			child.MouseLeave += (s, e) => turnOffHover();
+
+			child.Click += (s, e) => {
+				var onClickMethod = typeof(Control).GetMethod("OnClick", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+				onClickMethod?.Invoke(group, new object[] { EventArgs.Empty });
+			};
+		}
+
+		return group;
+	}
+
+
+	public Control SidebarItem_v2_old(string iconCode, string text, bool isSelected = false, 
+		bool isExpanded = true, bool showIndicator = false, Color? selectedBgColor = null, bool growWidth = true)
+	{
+		// 1. Mavi gösterge çizgisi
+		Panel indicator = null;
+		if (showIndicator)
+		{
+			indicator = (Panel?)new Panel
+			{
+				Width = 3,
+				Height = 16,
+				BackColor = isSelected ? Color.FromArgb(0, 103, 192) : Color.Transparent
+			}.Rounded(1);
+		}
+
+		// 2. İkon Tanımlaması
+		Label ico = new Label
+		{
+			Text = iconCode,
+			Font = new Font("Segoe Fluent Icons", 11),
+			AutoSize = true,
+			BackColor = Color.Transparent
+		};
+
+		if (ico.Font.Name != "Segoe Fluent Icons")
+			ico.Font = new Font("Segoe MDL2 Assets", 11);
+
+		// 3. Metin Tanımlaması
+		Label lbl = new Label
+		{
+			Text = text,
+			Font = new Font("Segoe UI Variable Display", 9.5f, isSelected ? FontStyle.Bold : FontStyle.Regular),
+			AutoSize = true,
+			BackColor = Color.Transparent,
+			Visible = isExpanded
+		};
+
+		// 4. Grup Oluşturma (Esneklik Kontrolü)
+		Control group;
+		if (isExpanded)
+		{
+			// --- AÇIK SİDEBAR MODU ---
+			if (showIndicator && indicator != null)
+			{
+				group = this.Group(
+					indicator.VAlignMiddle(),
+					this.Space(8),
+					ico.VAlignMiddle(),
+					this.Space(12),
+					lbl.VAlignMiddle()
+				);
+			}
+			else
+			{
+				group = this.Group(
+					ico.VAlignMiddle(),
+					this.Space(12),
+					lbl.VAlignMiddle()
+				);
+			}
+		}
+		else
+		{
+			// --- KAPALI SİDEBAR MODU (İkon Ortalanmış) ---
+			if (showIndicator && indicator != null)
+			{
+				group = this.Group(
+					indicator.VAlignMiddle(),
+					this.Spring(),
+					ico.VAlignMiddle(),
+					this.Spring()
+				);
+			}
+			else
+			{
+				group = this.Group(
+					this.Spring(),
+					ico.VAlignMiddle(),
+					this.Spring()
+				);
+			}
+		}
+
+		// 🌟 Akıllı Genişlik Sabitleme: 
+		// Eğer growWidth false ise kontrolü genişletmiyoruz, High-DPI destekli 40px'e sabitliyoruz.
+		if (growWidth)
+		{
+			group.GrowW();
+		}
+		else
+		{
+			group.Width = Scale(40);
+		}
+
+		group.Padding(0, 8, 0, 8)
+			 .Margin(4, 1, 4, 1)
+			 .Rounded(4);
+
+		if (isSelected)
+		{
+			Color selBg = selectedBgColor ?? Color.FromArgb(234, 234, 234);
+			group.BackColor(selBg);
+		}
+
+		// Hover Olayları
+		Action turnOnHover = () => {
+			if (!isSelected) group.BackColor = Color.FromArgb(243, 243, 243);
+		};
+
+		Action turnOffHover = () => {
+			if (!isSelected) group.BackColor = Color.Transparent;
+		};
+
+		group.MouseEnter += (s, e) => turnOnHover();
+		group.MouseLeave += (s, e) => turnOffHover();
+
+		foreach (Control child in group.Controls)
+		{
+			child.MouseEnter += (s, e) => turnOnHover();
+			child.MouseLeave += (s, e) => turnOffHover();
+
+			child.Click += (s, e) => {
+				var onClickMethod = typeof(Control).GetMethod("OnClick", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+				onClickMethod?.Invoke(group, new object[] { EventArgs.Empty });
+			};
+		}
+
+		return group;
+	}
+
+
+	public Control SidebarItem_v2(string iconCode, string text, bool isSelected = false,
+	bool isExpanded = true, bool showIndicator = false, Color? selectedBgColor = null, bool growWidth = true)
+	{
+		// 1. Mavi gösterge çizgisi
+		Panel indicator = null;
+		if (showIndicator)
+		{
+			indicator = (Panel?)new Panel
+			{
+				Width = Scale(3),    // 🌟 High-DPI & Zoom Uyumu için Ölçeklendi
+				Height = Scale(16),   // 🌟 High-DPI & Zoom Uyumu için Ölçeklendi
+				BackColor = isSelected ? Color.FromArgb(0, 103, 192) : Color.Transparent
+			}.Rounded(1);
+		}
+
+		// 2. İkon Tanımlaması
+		Label ico = new Label
+		{
+			Text = iconCode,
+			Font = new Font("Segoe Fluent Icons", 11),
+			AutoSize = true,
+			BackColor = Color.Transparent
+		};
+
+		if (ico.Font.Name != "Segoe Fluent Icons")
+			ico.Font = new Font("Segoe MDL2 Assets", 11);
+
+		// 3. Metin Tanımlaması
+		Label lbl = new Label
+		{
+			Text = text,
+			Font = new Font("Segoe UI Variable Display", 9.5f, isSelected ? FontStyle.Bold : FontStyle.Regular),
+			AutoSize = true,
+			BackColor = Color.Transparent,
+			Visible = isExpanded
+		};
+
+		// 4. Grup Oluşturma (Esneklik Kontrolü)
+		Control group;
+		if (isExpanded)
+		{
+			// --- AÇIK SİDEBAR MODU ---
+			if (showIndicator && indicator != null)
+			{
+				group = this.Group(
+					indicator.VAlignMiddle(),
+					this.Space(8),
+					ico.VAlignMiddle(),
+					this.Space(12),
+					lbl.VAlignMiddle()
+				);
+			}
+			else
+			{
+				// 🌟 BANANA HİZALAMA ÇÖZÜMÜ: 
+				// Gösterge çizgisi yoksa bile, dikey hizalamanın milimetrik şaşmaması için
+				// sol tarafa tam olarak aynı boşluğu koyuyoruz: Scale(3) + Scale(8) = Scale(11)
+				group = this.Group(
+					this.Space(11),
+					ico.VAlignMiddle(),
+					this.Space(12),
+					lbl.VAlignMiddle()
+				);
+			}
+		}
+		else
+		{
+			// --- KAPALI SİDEBAR MODU (İkon Ortalanmış) ---
+			if (showIndicator && indicator != null)
+			{
+				group = this.Group(
+					indicator.VAlignMiddle(),
+					this.Spring(),
+					ico.VAlignMiddle(),
+					this.Spring()
+				);
+			}
+			else
+			{
+				group = this.Group(
+					this.Spring(),
+					ico.VAlignMiddle(),
+					this.Spring()
+				);
+			}
+		}
+
+		// Akıllı Genişlik Sabitleme
+		if (growWidth)
+		{
+			group.GrowW();
+		}
+		else
+		{
+			group.Width = Scale(40);
+		}
+
+		group.Padding(0, 8, 0, 8)
+			 .Margin(4, 1, 4, 1)
+			 .Rounded(4);
+
+		if (isSelected)
+		{
+			Color selBg = selectedBgColor ?? Color.FromArgb(234, 234, 234);
+			group.BackColor(selBg);
+		}
+
+		// Hover Olayları
+		Action turnOnHover = () => {
+			if (!isSelected) group.BackColor = Color.FromArgb(243, 243, 243);
+		};
+
+		Action turnOffHover = () => {
+			if (!isSelected) group.BackColor = Color.Transparent;
+		};
+
+		group.MouseEnter += (s, e) => turnOnHover();
+		group.MouseLeave += (s, e) => turnOffHover();
+
+		foreach (Control child in group.Controls)
+		{
+			child.MouseEnter += (s, e) => turnOnHover();
+			child.MouseLeave += (s, e) => turnOffHover();
+
+			child.Click += (s, e) => {
+				var onClickMethod = typeof(Control).GetMethod("OnClick", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+				onClickMethod?.Invoke(group, new object[] { EventArgs.Empty });
+			};
+		}
+
+		return group;
+	}
+
+
 
 	// Sidebar öğesi oluşturmak için yardımcı 
 	public Control SidebarItem_v1(string iconCode, string text, bool isSelected = false)
@@ -1162,14 +1665,22 @@ public class SmartSidePanel : Panel
 	public Side Edge { get; set; }
 	public int BaseSize { get; set; }
 	public List<Control> Content { get; set; }
-	public SmartSidePanel() { BackColor = Color.Transparent; Margin = new Padding(0); }
+	public SmartSidePanel() { 
+		BackColor = Color.Transparent; 
+		Margin = new Padding(0);
+		this.DoubleBuffered = true; // 🌟 Pürüzsüz çizim için eklendi
+	}
 }
 
 public class SmartGroup : Panel
 {
 	public List<Control> LayoutOrder { get; set; }
 	public bool IsVertical { get; set; }
-	public SmartGroup() { BackColor = Color.Transparent; Margin = new Padding(0); }
+	public SmartGroup() { 
+		BackColor = Color.Transparent;
+		Margin = new Padding(0);
+		this.DoubleBuffered = true; // 🌟 Pürüzsüz çizim için eklendi
+	}
 }
 
 public class RowResult

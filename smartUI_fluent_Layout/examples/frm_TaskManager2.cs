@@ -1,14 +1,14 @@
-﻿using System;
+﻿using SmartLayoutEngine;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-
-using SmartLayoutEngine;
 
 namespace smartUI_fluent_Layout.examples
 {
@@ -70,7 +70,7 @@ namespace smartUI_fluent_Layout.examples
 
 			Button btnNewTask = CreateHeaderButton("\uE710", "Yeni görevi çalıştır");
 			Button btnEndTask = CreateHeaderButton("\uE711", "Görevi sonlandır");
-			Button btnEcoMode = CreateHeaderButton("\uE70E", "Verimlilik modu");
+			Button btnEcoMode = CreateHeaderButton(SegoeMDL2Icons.Leaf, "Verimlilik modu");
 			Button btnMore = CreateHeaderButton("\uE712", "");
 
 			var headerRow = ui.Row(
@@ -99,6 +99,8 @@ namespace smartUI_fluent_Layout.examples
 		}
 
 		// --- MODERN WIN11 DATA GRID VIEW TASARIMI ---
+
+		// --- 1. TABLO KURULUMU (SetupProcessGrid) ---
 		private void SetupProcessGrid()
 		{
 			dgvProcesses = new DataGridView
@@ -112,32 +114,33 @@ namespace smartUI_fluent_Layout.examples
 				MultiSelect = false,
 				AllowUserToAddRows = false,
 				AllowUserToDeleteRows = false,
-				AllowUserToOrderColumns = true, // Sürükleyerek kolon yerini değiştirebilme
+				AllowUserToOrderColumns = true,
 				AllowUserToResizeRows = false,
 				RowTemplate = { Height = 36 },
 				EnableHeadersVisualStyles = false,
-				ColumnHeadersHeight = 34,
+				ColumnHeadersHeight = 55, // 🌟 2 Satırlı başlık sığması için yükseklik 46px yapıldı
 				ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing
 			};
 
-			// 🌟 BANANA HACK: Çift arabelleğe almayı (Double Buffering) açıyoruz ki sürüklerken veya kaydırırken hiç titremesin!
-			dgvProcesses.DoubleBuffered();
+			// Çift arabelleği açıyoruz (Titreme önleme)
+			typeof(DataGridView).InvokeMember("DoubleBuffered",
+				BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.SetProperty,
+				null, dgvProcesses, new object[] { true });
 
-			// Kolon Başlığı Stilleri (Windows 11 Tarzı Hafif Gri)
+			// Kolon Başlığı varsayılan stilleri
 			dgvProcesses.ColumnHeadersDefaultCellStyle.BackColor = Color.FromArgb(249, 249, 249);
 			dgvProcesses.ColumnHeadersDefaultCellStyle.ForeColor = Color.FromArgb(32, 32, 32);
-			dgvProcesses.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI Semibold", 9f);
+			dgvProcesses.ColumnHeadersDefaultCellStyle.Font = new Font("Segoe UI", 8.5f); // Küçük alt font
 			dgvProcesses.ColumnHeadersDefaultCellStyle.SelectionBackColor = Color.FromArgb(249, 249, 249);
-			dgvProcesses.ColumnHeadersDefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleLeft;
 
-			// Hücre Stilleri
+			// Normal Satır varsayılan stilleri
 			dgvProcesses.DefaultCellStyle.BackColor = Color.White;
 			dgvProcesses.DefaultCellStyle.ForeColor = Color.FromArgb(32, 32, 32);
 			dgvProcesses.DefaultCellStyle.Font = new Font("Segoe UI", 9f);
 			dgvProcesses.DefaultCellStyle.SelectionBackColor = Color.FromArgb(234, 244, 252);
 			dgvProcesses.DefaultCellStyle.SelectionForeColor = Color.Black;
 
-			// Kolonları el yordamıyla ve resizable (boyutlandırılabilir) olarak ekliyoruz:
+			// Kolonları oluştur (Kullanıcı dilediği gibi sürükleyip boyutlandırabilir)
 			var colName = new DataGridViewTextBoxColumn { Name = "Ad", HeaderText = "Ad", Width = 280, MinimumWidth = 100 };
 			var colStatus = new DataGridViewTextBoxColumn { Name = "Status", HeaderText = "Durum", Width = 90, MinimumWidth = 50 };
 			var colCpu = new DataGridViewTextBoxColumn { Name = "CPU", HeaderText = "% CPU", Width = 100, MinimumWidth = 60 };
@@ -145,17 +148,165 @@ namespace smartUI_fluent_Layout.examples
 			var colDisk = new DataGridViewTextBoxColumn { Name = "Disk", HeaderText = "% Disk", Width = 110, MinimumWidth = 60 };
 			var colNet = new DataGridViewTextBoxColumn { Name = "Net", HeaderText = "% Ağ", Width = 100, MinimumWidth = 60 };
 
-			// Verileri hizala
-			colCpu.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
-			colMem.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
-			colDisk.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
-			colNet.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+			// 🌟 GÖRSEL 1 GİBİ SAYISAL VERİLERİ SAĞA YASLIYORUZ
+			colCpu.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
+			colMem.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
+			colDisk.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
+			colNet.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
 
 			dgvProcesses.Columns.AddRange(colName, colStatus, colCpu, colMem, colDisk, colNet);
 
-			// 🌟 Canlı Kaynak Boyama Olayı (GDI+ Custom Paint)
 			dgvProcesses.CellPainting += DgvProcesses_CellPainting;
 		}
+
+		// --- 2. AKILLI HÜCRE VE BAŞLIK ÇİZİMİ (DgvProcesses_CellPainting) ---
+		private void DgvProcesses_CellPainting(object sender, DataGridViewCellPaintingEventArgs e)
+		{
+			// 🌟 A. KOLON BAŞLIĞI BOYAMA (e.RowIndex == -1)
+			// 🌟 1. DİNAMİK KOLON BAŞLIĞI BOYAMA (e.RowIndex == -1)
+			if (e.RowIndex == -1)
+			{
+				if (e.ColumnIndex >= 0)
+				{
+					e.Handled = true; // WinForms kaba siyah çizgilerini engelle
+
+					// Başlık Arka Planı (Açık Gri)
+					using (SolidBrush bgBrush = new SolidBrush(Color.FromArgb(249, 249, 249)))
+					{
+						e.Graphics.FillRectangle(bgBrush, e.CellBounds);
+					}
+
+					// İnce ve Tatlı Gri Sınır Çizgisi
+					using (Pen borderPen = new Pen(Color.FromArgb(225, 225, 225)))
+					{
+						e.Graphics.DrawLine(borderPen, e.CellBounds.Left, e.CellBounds.Bottom - 1, e.CellBounds.Right, e.CellBounds.Bottom - 1);
+						e.Graphics.DrawLine(borderPen, e.CellBounds.Right - 1, e.CellBounds.Top, e.CellBounds.Right - 1, e.CellBounds.Bottom - 2);
+					}
+
+					// Font Tanımlamaları
+					using (Font topFont = new Font("Segoe UI Semibold", 10f))
+					using (Font bottomFont = new Font("Segoe UI", 8.25f))
+					{
+						// 🌟 BANANA DİNAMİK YÜKSEKLİK MATEMATİĞİ
+						int topHeight = topFont.Height;         // Üst satırın gerçek font yüksekliği
+						int bottomHeight = bottomFont.Height;   // Alt satırın gerçek font yüksekliği
+						int totalTextHeight = topHeight + bottomHeight;
+
+						// Yazı bloğunu hücre yüksekliği (e.CellBounds.Height) içinde dikeyde mükemmel ortala
+						int verticalPadding = (e.CellBounds.Height - totalTextHeight) / 2;
+
+						if (e.ColumnIndex == 0 || e.ColumnIndex == 1)
+						{
+							// "Ad" ve "Durum" kelimelerini diğer sütunların alt satırıyla (Baseline) milimetrik eşitliyoruz
+							string name = e.Value?.ToString() ?? "";
+							Rectangle bottomBounds = new Rectangle(
+								e.CellBounds.Left + 8,
+								e.CellBounds.Top + verticalPadding + topHeight, // Diğer alt satırlarla aynı hizaya kilitler
+								e.CellBounds.Width - 12,
+								bottomHeight
+							);
+							TextFormatFlags flags = TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis;
+							TextRenderer.DrawText(e.Graphics, name, bottomFont, bottomBounds, Color.FromArgb(32, 32, 32), flags);
+						}
+						else if (e.ColumnIndex >= 2 && e.ColumnIndex <= 5)
+						{
+							string topLineText = "";
+							string bottomLineText = "";
+
+							if (e.ColumnIndex == 2) { topLineText = "%6"; bottomLineText = "CPU"; }
+							else if (e.ColumnIndex == 3) { topLineText = "%88"; bottomLineText = "Bellek"; }
+							else if (e.ColumnIndex == 4) { topLineText = "%1"; bottomLineText = "Disk"; }
+							else if (e.ColumnIndex == 5) { topLineText = "%0"; bottomLineText = "Ağ"; }
+
+							// Üst Satır (% Değeri)
+							Rectangle topBounds = new Rectangle(
+								e.CellBounds.Left,
+								e.CellBounds.Top + verticalPadding,
+								e.CellBounds.Width - 12,
+								topHeight
+							);
+							TextRenderer.DrawText(e.Graphics, topLineText, topFont, topBounds, Color.FromArgb(32, 32, 32), TextFormatFlags.Right | TextFormatFlags.VerticalCenter);
+
+							// 🌟 ALT SATIR (Kolon Adı): Üst satırın bittiği sınırın (topBounds.Bottom) hemen altından başlar!
+							Rectangle bottomBounds = new Rectangle(
+								e.CellBounds.Left,
+								topBounds.Bottom, // Çakışma veya boşluk kalma riski sıfıra indirildi
+								e.CellBounds.Width - 12,
+								bottomHeight
+							);
+							TextRenderer.DrawText(e.Graphics, bottomLineText, bottomFont, bottomBounds, Color.FromArgb(120, 120, 120), TextFormatFlags.Right | TextFormatFlags.VerticalCenter);
+						}
+
+						// 🌟 DİNAMİK SIRA GÖSTERGESİ (SORT INDICATOR):
+						bool isSortedColumn = (dgvProcesses.SortedColumn != null && dgvProcesses.SortedColumn.Index == e.ColumnIndex) || (dgvProcesses.SortedColumn == null && e.ColumnIndex == 3);
+						SortOrder sortOrder = dgvProcesses.SortedColumn != null ? dgvProcesses.SortOrder : SortOrder.Descending;
+
+						if (isSortedColumn)
+						{
+							string sortIcon = sortOrder == SortOrder.Ascending ? "\uE70E" : "\uE70D"; // Chevron Up / Down
+							Font sortFont = new Font("Segoe Fluent Icons", 6.5f);
+							if (sortFont.Name != "Segoe Fluent Icons") sortFont = new Font("Segoe MDL2 Assets", 6.5f);
+
+							// İkon dikeyde tam ortalama mesafesine göre dinamik olarak en tepeye çizilir
+							Rectangle sortBounds = new Rectangle(e.CellBounds.Right - 36, e.CellBounds.Top + verticalPadding - 8, 16, 12);
+							TextRenderer.DrawText(e.Graphics, sortIcon, sortFont, sortBounds, Color.FromArgb(120, 120, 120), TextFormatFlags.Right | TextFormatFlags.VerticalCenter);
+						}
+					}
+				}
+				return;
+			}
+
+			// 🌟 B. NORMAL SATIR BOYAMA (e.RowIndex >= 0)
+			// CPU, RAM, Disk ve Net hücreleri (2, 3, 4 ve 5. kolonlar)
+			if (e.ColumnIndex >= 2 && e.ColumnIndex <= 5)
+			{
+				string cellVal = e.Value?.ToString() ?? "";
+				double val = ParseToDouble(cellVal);
+
+				Color cellBgColor = GetCellColor(e.ColumnIndex, val);
+
+				if (cellBgColor != Color.Transparent)
+				{
+					e.Handled = true; // WinForms varsayılan hücre çizimini devral
+
+					// Hücre arka planını boya
+					using (SolidBrush bgBrush = new SolidBrush(cellBgColor))
+					{
+						e.Graphics.FillRectangle(bgBrush, e.CellBounds);
+					}
+
+					// Izgara çizgilerini çiz
+					using (Pen gridPen = new Pen(dgvProcesses.GridColor))
+					{
+						e.Graphics.DrawLine(gridPen, e.CellBounds.Left, e.CellBounds.Bottom - 1, e.CellBounds.Right, e.CellBounds.Bottom - 1);
+						e.Graphics.DrawLine(gridPen, e.CellBounds.Right - 1, e.CellBounds.Top, e.CellBounds.Right - 1, e.CellBounds.Bottom);
+					}
+
+					// 🌟 Sayısal hücre verilerini de 12px sağ boşlukla sağa hizalıyoruz
+					TextFormatFlags flags = TextFormatFlags.Right | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis;
+					Rectangle cellBounds = new Rectangle(e.CellBounds.Left, e.CellBounds.Top, e.CellBounds.Width - 12, e.CellBounds.Height);
+					TextRenderer.DrawText(e.Graphics, cellVal, e.CellStyle.Font, cellBounds, Color.FromArgb(32, 32, 32), flags);
+				}
+			}
+			// Eco Sütununda Yaprak İkonu Çizimi
+			else if (e.ColumnIndex == 1)
+			{
+				string cellValue = e.Value?.ToString() ?? "";
+				if (cellValue == "Eco")
+				{
+					e.Handled = true;
+					e.PaintBackground(e.CellBounds, true);
+
+					string leafIcon = "\uE70E";
+					Font iconFont = new Font("Segoe Fluent Icons", 9.5f);
+					if (iconFont.Name != "Segoe Fluent Icons") iconFont = new Font("Segoe MDL2 Assets", 9.5f);
+
+					TextFormatFlags flags = TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter;
+					TextRenderer.DrawText(e.Graphics, leafIcon, iconFont, e.CellBounds, Color.FromArgb(0, 138, 0), flags);
+				}
+			}
+		}
+
 
 		// --- GÖREV YÖNETİCİSİ RENK YOĞUNLUĞU VE ÖZEL ÇİZİM SİSTEMİ ---
 		// --- RENK TANIMLAMALARI (BANANA FLUENT PALETTE) ---
@@ -227,10 +378,42 @@ namespace smartUI_fluent_Layout.examples
 		}
 
 		// --- HÜCRE BOYAMA OLAYI (CELL PAINTING) ---
-		private void DgvProcesses_CellPainting(object sender, DataGridViewCellPaintingEventArgs e)
+		private void DgvProcesses_CellPainting_old2(object sender, DataGridViewCellPaintingEventArgs e)
 		{
-			if (e.RowIndex < 0) return; // Başlık satırını boyama
+			// 🌟 1. KOLON BAŞLIĞI BOYAMA (e.RowIndex == -1)
+			if (e.RowIndex == -1)
+			{
+				if (e.ColumnIndex >= 0)
+				{
+					e.Handled = true; // WinForms'un kaba siyah çizgiler çizen çizimini durdur
 
+					// Başlık Arka Planı (Açık Gri)
+					using (SolidBrush bgBrush = new SolidBrush(Color.FromArgb(249, 249, 249)))
+					{
+						e.Graphics.FillRectangle(bgBrush, e.CellBounds);
+					}
+
+					// 🌟 İnce ve Tatlı Gri Sınır Çizgisi (Black yerine modern Windows 11 grisi)
+					using (Pen borderPen = new Pen(Color.FromArgb(225, 225, 225)))
+					{
+						// Başlığın altındaki yatay çizgi
+						e.Graphics.DrawLine(borderPen, e.CellBounds.Left, e.CellBounds.Bottom - 1, e.CellBounds.Right, e.CellBounds.Bottom - 1);
+						// Kolonlar arasındaki dikey ayırıcı çizgi
+						e.Graphics.DrawLine(borderPen, e.CellBounds.Right - 1, e.CellBounds.Top, e.CellBounds.Right - 1, e.CellBounds.Bottom - 2);
+					}
+
+					// Başlık Yazısı (Sola yaslı, dikeyde ortalı ve 8px iç boşluklu)
+					if (e.Value != null)
+					{
+						TextFormatFlags flags = TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis;
+						Rectangle textBounds = new Rectangle(e.CellBounds.Left + 8, e.CellBounds.Top, e.CellBounds.Width - 12, e.CellBounds.Height);
+						TextRenderer.DrawText(e.Graphics, e.Value.ToString(), e.CellStyle.Font, textBounds, e.CellStyle.ForeColor, flags);
+					}
+				}
+				return;
+			}
+
+			// 🌟 2. NORMAL SATIR BOYAMA (e.RowIndex >= 0)
 			// CPU, RAM, Disk ve Net hücreleri (2, 3, 4 ve 5. kolonlar)
 			if (e.ColumnIndex >= 2 && e.ColumnIndex <= 5)
 			{
@@ -256,12 +439,12 @@ namespace smartUI_fluent_Layout.examples
 						e.Graphics.DrawLine(gridPen, e.CellBounds.Right - 1, e.CellBounds.Top, e.CellBounds.Right - 1, e.CellBounds.Bottom);
 					}
 
-					// Metni tam ortalayarak çiz (Görev Yöneticisi Light Temada yazılar siyahtır usta)
+					// Metni tam ortalayarak çiz
 					TextFormatFlags flags = TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis;
 					TextRenderer.DrawText(e.Graphics, cellVal, e.CellStyle.Font, e.CellBounds, Color.FromArgb(32, 32, 32), flags);
 				}
 			}
-			// Eco Sütununda Yaprak İkonu Çizimi (Aynı kalıyor)
+			// Eco Sütununda Yaprak İkonu Çizimi
 			else if (e.ColumnIndex == 1)
 			{
 				string cellValue = e.Value?.ToString() ?? "";
@@ -280,7 +463,6 @@ namespace smartUI_fluent_Layout.examples
 			}
 		}
 
-
 		// --- VERİ DOLDURUCU (MOCK DATA) ---
 		private void LoadMockData()
 		{
@@ -294,40 +476,22 @@ namespace smartUI_fluent_Layout.examples
 			dgvProcesses.Rows.Add("Everything",				"", "%0", "60,5 MB", "0 MB/sn", "0 MB/sn");
 		}
 
-		// --- SIDEBAR POPULATE METODU ---  moved to extensions as addcontent
-		//public static SmartSidePanel Add( SmartSidePanel sp, Control c)
-		//{
-		//	if (sp.Content == null) sp.Content = new List<Control>();
-
-		//	sp.Controls.Add(c);
-		//	sp.Content.Add(c);
-		//	return sp;
-		//}
-
+	 
 		private void PopulateSidebar(SmartSidePanel sp)
 		{
-			// 1. Hamburger Butonu
-			Button btnHamburger = new Button
-			{
-				Text = "\uE700",
-				Font = new Font("Segoe Fluent Icons", 11),
-				Width = 36,
-				Height = 36,
-				FlatStyle = FlatStyle.Flat,
-				BackColor = Color.Transparent
-			};
-			if (btnHamburger.Font.Name != "Segoe Fluent Icons") btnHamburger.Font = new Font("Segoe MDL2 Assets", 11);
-			btnHamburger.FlatAppearance.BorderSize = 0;
-			btnHamburger.Rounded(4);
-			btnHamburger.HoverBackColor(Color.FromArgb(230, 230, 230));
+			//// 1. Hamburger Menü Butonu (Artık tamamen evrensel SidebarItem_v1 ile üretiliyor ve kusursuz ortalanıyor!)
+			//var btnHamburger = ui.SidebarItem_v2("\uE700", "", isSelected: false, isExpanded: _isSidebarExpanded, showIndicator: false);
+			// 🌟 Hamburger Menü Butonu (Yazısız kalacağı ve esnemeyeceği için isExpanded: false, growWidth: false geçiyoruz)
+			var btnHamburger = ui.SidebarItem_v2("\uE700", "", 
+				isSelected: false, isExpanded: false, showIndicator: false, growWidth: false);
 
 			sp.BaseSize = _isSidebarExpanded ? 230 : 48;
 			btnHamburger.Click += (s, e) => {
-				_isSidebarExpanded = !_isSidebarExpanded;
+				ui.FreezeRedraw(); // Silme ve yeniden ekleme başlamadan ÖNCE çizimi dondur!
 
-				// Genişlik Windows 11 standartlarına göre 48px'e çekildi:
-				sp.BaseSize = _isSidebarExpanded ? 230 : 48;
-				//sp.BaseSize = _isSidebarExpanded ? 230 : 60;
+				_isSidebarExpanded = !_isSidebarExpanded;
+				sp.BaseSize = _isSidebarExpanded ? 230 : 48; // Genişlik Windows 11 standardı olan 48px yapıldı
+
 				sp.Controls.Clear();
 				sp.Content.Clear();
 				PopulateSidebar(sp);
@@ -335,13 +499,12 @@ namespace smartUI_fluent_Layout.examples
 				ui.RefreshLayout();
 			};
 
-			// Yeni AddContent metodunu kullanıyoruz
 			sp.AddContent(btnHamburger);
 			sp.AddContent(ui.Space(8));
 
 			// Menü Elemanları
 			var menuItems = new List<(string Icon, string Text, bool IsSelected)> {
-				("\uE990", "İşlemler", true),
+				(SegoeMDL2Icons.AppIconDefault, "İşlemler", true),
 				("\uE9D9", "Performans", false),
 				("\uE81C", "Uygulama geçmişi", false),
 				(SegoeMDL2Icons.SpeedHigh, "Başlangıç uygulamaları", false),
@@ -352,73 +515,16 @@ namespace smartUI_fluent_Layout.examples
 
 			foreach (var item in menuItems)
 			{
-				// 🌟 Kendi v1 metodumuzu tüm parametreleriyle evrensel olarak çağırıyoruz
 				var sidebarBtn = ui.SidebarItem_v2(item.Icon, item.Text, item.IsSelected, _isSidebarExpanded, showIndicator: true);
 				sp.AddContent(sidebarBtn);
 			}
 
-			// 🌟 Pürüzsüz dikey yay sistemi
+			// Dikey Yay (Settings'i aşağıya iter)
 			sp.AddContent(ui.Spring());
 
-			// En alttaki Ayarlar butonu (Gösterge istemediğimiz için showIndicator: false)
+			// En alttaki Ayarlar butonu
 			var settingsBtn = ui.SidebarItem_v2("\uE713", "Ayarlar", false, _isSidebarExpanded, showIndicator: false);
 			sp.AddContent(settingsBtn);
-		}
- 
-		private Control CreateSidebarItem(string icon, string text, bool isSelected, bool isExpanded)
-		{
-			Panel indicator = new Panel
-			{
-				Width = 3,
-				Height = 16,
-				BackColor = isSelected ? Color.FromArgb(0, 103, 192) : Color.Transparent
-			};
-			indicator.Rounded(1);
-
-			Label ico = new Label
-			{
-				Text = icon,
-				Font = new Font("Segoe Fluent Icons", 11),
-				AutoSize = true,
-				BackColor = Color.Transparent,
-				ForeColor = Color.FromArgb(32, 32, 32)
-			};
-			if (ico.Font.Name != "Segoe Fluent Icons") ico.Font = new Font("Segoe MDL2 Assets", 11);
-
-			Label lbl = new Label
-			{
-				Text = text,
-				Font = new Font("Segoe UI", 9f, isSelected ? FontStyle.Bold : FontStyle.Regular),
-				AutoSize = true,
-				BackColor = Color.Transparent,
-				ForeColor = Color.FromArgb(32, 32, 32),
-				Visible = isExpanded
-			};
-
-			var group = ui.Group(
-				indicator/*.Nudge(0, 4)*/,
-				ui.Space(8),
-				ico.VAlignMiddle().BackColor(Color.LightCoral),
-			ui.Space(12).Visible(isExpanded),
-			lbl.VAlignMiddle().Visible(isExpanded)
-
-			)
-			.GrowW()
-			.Padding(0,10,0,10)
-			.Margin(4, 1, 4, 1)
-			.Rounded(4)
-			.BackColor(Color.OrangeRed);
-
-			if (isSelected)
-			{
-				group.BackColor(Color.FromArgb(234, 234, 234));
-			}
-			else
-			{
-				group.HoverBackColor(Color.FromArgb(243, 243, 243));
-			}
-
-			return group;
 		}
 
 		private Button CreateHeaderButton(string icon, string text)
