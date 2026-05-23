@@ -30,6 +30,8 @@ public class LayoutProps
 	public Color? BorderColor { get; set; }
 	public float BorderThickness { get; set; }
 	public bool IsRoundedHooked { get; set; } // Olayı (Event) iki kez bağlamamak
+
+	public bool IsTextChangeHooked { get; set; } // 🌟 Yeni Eklenti
 }
 
 public partial class SmartUI
@@ -68,14 +70,53 @@ public partial class SmartUI
 
 	public int Scale(int value) => (int)(value * _dpiScale * _zoomFactor);
 
-	private void RegisterForZoom(Control c)
+	private void RegisterForZoom_old(Control c)
 	{
 		if (!_originalFonts.ContainsKey(c)) _originalFonts[c] = c.Font.Size;
 		if (!(c is SmartGroup) && !_originalSizes.ContainsKey(c)) _originalSizes[c] = c.Size;
 	}
+	private void RegisterControl(Control c)
+	{
+		// 1. Zoom Hafızası
+		if (!_originalFonts.ContainsKey(c)) _originalFonts[c] = c.Font.Size;
+		if (!(c is SmartGroup) && !_originalSizes.ContainsKey(c)) _originalSizes[c] = c.Size;
+
+		// 2. 🌟 REACTIVE UI SİHRİ: Metin değişirse motoru otomatik tetikle!
+		var props = c.GetProps();
+		if (!props.IsTextChangeHooked)
+		{
+			props.IsTextChangeHooked = true;
+			c.TextChanged += (s, e) =>
+			{
+				if (_isPerformingLayout) return; // Sonsuz döngü koruması
+
+				if (!(c is SmartGroup))
+				{
+					// Yeni metne göre ne kadar yer kaplaması gerektiğini Windows'a sor
+					Size newPref = c.GetPreferredSize(Size.Empty);
+
+					// Zoom hafızasını güncelle (Geriye bölerek ham boyutunu buluyoruz)
+					_originalSizes[c] = new Size(
+						(int)(newPref.Width / _zoomFactor),
+						(int)(newPref.Height / _zoomFactor)
+					);
+
+					// Yeni boyutu kontrole ANINDA ver ki motor hesaplarken doğru bilsin
+					c.Width = newPref.Width;
+					if (!(c is TextBox && !((TextBox)c).Multiline))
+						c.Height = newPref.Height;
+				}
+
+				// Motoru ateşle! Tüm satırları ve grupları yeni genişliğe göre tekrar diz
+				if (_form != null && _form.IsHandleCreated)
+				{
+					RefreshLayout();
+				}
+			};
+		}
+	}
 
 
-	
 	public void SetupResponsiveSidebar(Button btn, int threshold = 800)
 	{
 		_hamburgerBtn = btn;
@@ -129,7 +170,7 @@ public partial class SmartUI
 			c.Anchor = AnchorStyles.Top | AnchorStyles.Left;
 			c.Dock = DockStyle.None;
 			c.Margin = new Padding(0);
-			RegisterForZoom(c);
+			RegisterControl(c);
 			rowPanel.Controls.Add(c);
 		}
 
@@ -169,7 +210,7 @@ public partial class SmartUI
 			c.Anchor = AnchorStyles.Top | AnchorStyles.Left;
 			c.Margin = new Padding(0);
 			sp.Controls.Add(c);
-			RegisterForZoom(c);
+			RegisterControl(c);
 		}
 		_form.Controls.Add(sp);
 		_sidePanels.Add(sp);
@@ -188,7 +229,7 @@ public partial class SmartUI
 			c.Anchor = AnchorStyles.Top | AnchorStyles.Left;
 			c.Dock = DockStyle.None;
 			c.Margin = new Padding(0);
-			RegisterForZoom(c);
+			RegisterControl(c);
 			sg.Controls.Add(c);
 		}
 		Arrange(sg);
@@ -238,7 +279,7 @@ public partial class SmartUI
 	}
 
 	// --- İÇ İÇE (NESTED) DÜZENLEYİCİ ---
-	private void Arrange(SmartGroup sg)
+	private void Arrange_old(SmartGroup sg)
 	{
 		if (sg == null) return;
 		ApplyPaddingLogic(sg);
@@ -336,6 +377,117 @@ public partial class SmartUI
 				var p = c.GetProps();
 				if (p.VAlign == 1) c.Top = sg.Padding.Top + (sg.Height - sg.Padding.Top - sg.Padding.Bottom - c.Height) / 2;
 				else if (p.VAlign == 2) c.Top = sg.Height - sg.Padding.Bottom - c.Height;
+			}
+		}
+	}
+
+	public void Arrange(SmartGroup sg)
+	{
+		if (sg == null) return;
+		ApplyPaddingLogic(sg);
+
+		var sgProps = sg.GetProps();
+		sg.AutoSize = !sgProps.GrowW;
+
+		int innerWidth = sg.Width - sg.Padding.Left - sg.Padding.Right;
+		if (innerWidth <= 10) innerWidth = Scale(300);
+
+		int itemSpacing = sgProps.ItemSpacing.HasValue ? Scale(sgProps.ItemSpacing.Value) : 0;
+
+		// Genişlik Eşitleme (MatchWidth)
+		foreach (var c in sg.LayoutOrder)
+		{
+			var p = c.GetProps();
+			if (p.MatchWidthTarget != null) c.Width = p.MatchWidthTarget.Width;
+		}
+
+		// --- AŞAMA 1: İÇ ESNEKLİK HESABI ---
+		int fixedW = 0, flexCount = 0;
+		if (!sg.IsVertical)
+		{
+			foreach (var c in sg.LayoutOrder)
+			{
+				Padding m = GetScaledMargin(c); // 🌟 Çocuğun marginini al!
+				fixedW += m.Left + m.Right;     // Marginler her zaman sabit yer kaplar
+
+				var p = c.GetProps();
+				if (p.GrowW || p.Spring) flexCount++;
+				else fixedW += c.Width + itemSpacing;
+			}
+		}
+		int flexW = flexCount > 0 ? Math.Max(0, (innerWidth - fixedW) / flexCount) : innerWidth;
+
+		// --- AŞAMA 2: DİZİLİM VE MARGIN UYGULAMASI ---
+		int currentX = sg.Padding.Left;
+		int currentY = sg.Padding.Top;
+		int maxWidth = 0, maxHeight = 0;
+
+		// (Not: Sende LayoutOrder array ise .Length, List ise .Count yap)
+		for (int i = 0; i < sg.LayoutOrder.Count; i++)
+		{
+			var c = sg.LayoutOrder[i];
+			ApplyPaddingLogic(c);
+			Padding m = GetScaledMargin(c); // 🌟 Çocuğun Margin'ini okuduk
+			var props = c.GetProps();
+
+			// Çocuğun ulaşabileceği hedef genişlik (Marginler Düşülerek!)
+			int childTargetWidth = sg.IsVertical ? (innerWidth - m.Left - m.Right) : (props.GrowW || props.Spring ? flexW : c.Width);
+
+			if (props.GrowW || props.Spring || sg.IsVertical)
+			{
+				c.Width = childTargetWidth;
+				if (c is SmartGroup nested) { nested.AutoSize = false; nested.Width = childTargetWidth; }
+			}
+
+			if (c is Label lbl && props.WrapText)
+			{
+				lbl.AutoSize = false;
+				lbl.MaximumSize = new Size(childTargetWidth, 0);
+				lbl.AutoSize = true;
+				Size preferred = lbl.GetPreferredSize(new Size(childTargetWidth, 0));
+				lbl.Size = new Size(childTargetWidth, preferred.Height);
+			}
+
+			if (c is SmartGroup n) Arrange(n);
+
+			// 🌟 KONTROLÜN YERİ: Mevcut X/Y + Kontrolün KENDİ MARGİNİ
+			c.Left = currentX + m.Left;
+			c.Top = currentY + m.Top;
+
+			if (props.AlignRightTarget != null)
+			{
+				c.Left = props.AlignRightTarget.Right - c.Width - m.Right;
+			}
+
+			int gap = (i == sg.LayoutOrder.Count - 1) ? 0 : itemSpacing;
+
+			// X veya Y ekseninde ilerlerken MARGIN değerlerini de atla!
+			if (sg.IsVertical)
+			{
+				currentY += m.Top + c.Height + m.Bottom + gap;
+				maxWidth = Math.Max(maxWidth, m.Left + c.Width + m.Right);
+			}
+			else
+			{
+				currentX += m.Left + c.Width + m.Right + gap;
+				if (!props.Spring) maxHeight = Math.Max(maxHeight, m.Top + c.Height + m.Bottom);
+			}
+		}
+
+		sg.Height = (sg.IsVertical ? currentY : maxHeight + sg.Padding.Top) + sg.Padding.Bottom;
+		if (!sg.IsVertical && !sgProps.GrowW) sg.Width = currentX + sg.Padding.Right;
+
+		// --- AŞAMA 3: DİKEY HİZALAMA (VAlign) ---
+		if (!sg.IsVertical)
+		{
+			foreach (var c in sg.LayoutOrder)
+			{
+				var p = c.GetProps();
+				Padding m = GetScaledMargin(c);
+
+				// Eğer ortalayacaksak veya alta alacaksak kendi alt marginine saygı duysun
+				if (p.VAlign == 1) c.Top = sg.Padding.Top + (sg.Height - sg.Padding.Top - sg.Padding.Bottom - c.Height) / 2;
+				else if (p.VAlign == 2) c.Top = sg.Height - sg.Padding.Bottom - c.Height - m.Bottom;
 			}
 		}
 	}

@@ -101,7 +101,12 @@ namespace smartUI_fluent_Layout
 			ui.SectionHeader_v1("Parlaklık ve renk");
 
 			ui.CardView_v1(icoBrightness, lblBrightnessTitle, lblBrightnessDesc, trackBrightness);
-			ui.CardView_v1(icoNight, lblNightTitle, lblNightDesc, btnToggleNight);
+			//ui.CardView_v1(icoNight, lblNightTitle, lblNightDesc, btnToggleNight);
+			ModernToggle tglNight = new (){ Text = "Kapalı" };
+			tglNight.CheckedChanged += (s, e) => { 
+				tglNight.Text = tglNight.Checked ? "Açık" : "Kapalı-xxxxxxxxxxxxxx"; 
+			};
+			ui.CardView_v1(icoNight, lblNightTitle, lblNightDesc,tglNight);
 			ui.CardView_v1(icoHDR, lblHDRTitle, lblHDRDesc, icoArrowHDR);
 
 			// BÖLÜM 2: Scale
@@ -115,10 +120,62 @@ namespace smartUI_fluent_Layout
 			ui.Divider_v1();
 			ui.AlertBox_v1(SegoeMDL2Icons.Info, "Windows Update güncellemeleri duraklatıldı.", Color.LightBlue, Color.DarkBlue);
 
-
+			ui.Row(
+				SmartUI_Button_v1(ui, new Button() { Text = "hello" }).Margin(20).VAlignMiddle(),
+				SmartUI_TextBox_v1(ui, new TextBox() { Text = "hello" }).Margin(20).VAlignMiddle(),
+				new ModernToggle().Margin(20).VAlignMiddle()
+			)
+			.Padding(20);
 		}
 
 
+
+		//look okay
+		public Control SmartUI_TextBox_v1( SmartUI sui, TextBox txt)
+		{
+			// Eski kenarlığı yok et
+			txt.BorderStyle = BorderStyle.None;
+			txt.BackColor = Color.White; // Kutuyla aynı renk
+
+			// Onu modern, yuvarlak köşeli, ince gri çerçeveli bir kutuya hapset!
+			return sui.Group(txt.GrowW())
+					   .BackColor(Color.White)
+					   .Padding(10, 8, 10, 8)
+					   .Rounded(4, Color.FromArgb(200, 200, 200), 1f); // 👈 Modern Çerçeve
+		}
+
+		// looks brokenç not good look.. height is narrow.. its old
+		public Control SmartUI_Button_v2( SmartUI sui, Button btn)
+		{
+
+			btn.FlatStyle = FlatStyle.Flat;
+			btn.FlatAppearance.BorderSize = 0; // WinForms çirkinliğini kapat
+
+			// Bizim motorla modernleştir:
+			return btn.BackColor(Color.DodgerBlue).Rounded(6);
+				
+		}
+		public Control SmartUI_Button_v1(SmartUI sui, Button btn)
+		{
+			btn.FlatStyle = FlatStyle.Flat;
+			btn.FlatAppearance.BorderSize = 0;
+
+			// 🌟 BANANA FIX: Butona nefes aldır ve metni kesilmekten kurtar!
+			btn.AutoSize = true;
+
+			// Modern Windows 11 butonları dolgundur. Sol-Sağ 16px, Üst-Alt 6px boşluk:
+			btn.Padding = new Padding(sui.Scale(16), sui.Scale(6), sui.Scale(16), sui.Scale(6));
+
+			// AutoSize olsa bile yüksekliği en az 32px (Modern standart) olsun:
+			btn.MinimumSize = new Size(0, sui.Scale(32));
+
+			// Şık dursun diye yazıyı beyaz, imleci el yapalım
+			btn.ForeColor = Color.White;
+			btn.Cursor = Cursors.Hand;
+
+			// Şimdi güvenle yuvarlatabilirsin, yazı asla kesilmez
+			return btn.BackColor(Color.DodgerBlue).Rounded(6);
+		}
 
 
 		private void InitControls()
