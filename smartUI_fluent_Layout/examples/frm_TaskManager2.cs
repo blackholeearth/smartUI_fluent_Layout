@@ -297,7 +297,7 @@ namespace smartUI_fluent_Layout.examples
 					e.Handled = true;
 					e.PaintBackground(e.CellBounds, true);
 
-					string leafIcon = "\uE70E";
+					string leafIcon = SegoeMDL2Icons.Leaf;
 					Font iconFont = new Font("Segoe Fluent Icons", 9.5f);
 					if (iconFont.Name != "Segoe Fluent Icons") iconFont = new Font("Segoe MDL2 Assets", 9.5f);
 
