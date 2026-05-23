@@ -1044,4 +1044,49 @@ public static class UIExtensions
 		return path;
 	}
 
+
+	// textbox font textcolor(forecolor) extensions
+	public static Control Color(this Control c, Color color)
+	{
+		c.ForeColor = color;
+		return c;
+	}
+
+	public static Control FontSize(this Control c, float size, FontStyle style = FontStyle.Regular)
+	{
+		c.Font = new Font(c.Font.FontFamily, size, style);
+		return c;
+	}
+	public static Control Bold(this Control c)
+	{
+		c.Font = new Font(c.Font, c.Font.Style | FontStyle.Bold);
+		return c;
+	}
+
+	public static Control HoverBackColor(this Control c, Color hoverColor)
+	{
+		Color originalColor = c.BackColor;
+
+		Action enter = () => c.BackColor = hoverColor;
+		Action leave = () => c.BackColor = originalColor;
+
+		c.MouseEnter += (s, e) => enter();
+		c.MouseLeave += (s, e) => leave();
+
+		// İçerideki mevcut elemanlara bağla
+		foreach (Control child in c.Controls)
+		{
+			child.MouseEnter += (s, e) => enter();
+			child.MouseLeave += (s, e) => leave();
+		}
+
+		// Gelecekte eklenebilecek dinamik elemanlar için önlem
+		c.ControlAdded += (s, e) => {
+			e.Control.MouseEnter += (s2, e2) => enter();
+			e.Control.MouseLeave += (s2, e2) => leave();
+		};
+
+		return c;
+	}
+
 }
