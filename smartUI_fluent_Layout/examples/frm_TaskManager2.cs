@@ -71,8 +71,10 @@ namespace smartUI_fluent_Layout.examples
 
 
 			// Solunda büyüteç ikonu hazır gelen arama kutusu
-			Control searchBox = ui.FluentSearchBox_v1("İşlemlerde ara...", width: 280);
-			var headerRow1 = ui.Row(
+			Control searchBox = ui.FluentSearchBox_v1("İşlemlerde ara...", width: 280)
+				.Padding(8)
+				.MarginY(4);
+			var searchRow = ui.Row(
 				ui.Spring(),
 				searchBox.VAlignMiddle(),
 				ui.Spring()
@@ -89,7 +91,10 @@ namespace smartUI_fluent_Layout.examples
 				ui.Space(6),
 				btnMore.VAlignMiddle()
 			)
-			.Margin(16, 12, 16, 6);
+			.Padding(8)
+			.Margin(16, 1, 16, 1)
+			.BackColor(Color.White)
+			;
 
 			// --- 3. AKILLI TABLONUN (GRID) BAĞLANMASI ---
 			SetupProcessGrid();
@@ -97,7 +102,7 @@ namespace smartUI_fluent_Layout.examples
 			// Tabloyu SmartUI Row içine gömüp GrowH ve GrowW veriyoruz.
 			// Böylece form büyüdükçe tablo da otomatik esneyecektir.
 			ui.Row(dgvProcesses.GrowW().GrowH())
-			  .Margin(16, 4, 16, 16);
+			  .Margin(16, 1, 16, 16);
 
 			// Verileri yükle
 			LoadMockData();
@@ -578,7 +583,8 @@ namespace smartUI_fluent_Layout.examples
 			btnGroup
 				.Padding(12, 6+4, 12, 6+4)
 				.BackColor(Color.White)
-				.Rounded(6, Color.FromArgb(218, 218, 218), 1f) // İnce şık Win11 kenarlığı
+				//.Rounded(6, Color.FromArgb(218, 218, 218), 1.5f) // İnce şık Win11 kenarlığı
+				.Rounded(6) // İnce şık Win11 kenarlığı
 				.HoverBackColor(Color.FromArgb(245, 245, 245));
 
 			btnGroup.Cursor = Cursors.Hand;
