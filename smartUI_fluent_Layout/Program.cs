@@ -20,7 +20,9 @@ namespace smartUI_fluent_Layout
 
 			//Application.Run(new frm_w11Settings());
 
-			Application.Run(new frm_TaskManager2());
+			//Application.Run(new frm_TaskManager2());
+
+			Application.Run(new frm_Components_example());
 
 
 			
