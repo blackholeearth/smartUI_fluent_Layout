@@ -8,6 +8,45 @@ namespace SmartLayoutEngine
 {
 	public partial class SmartUI
 	{
+		// --- 11. WINDOWS 11 MODERN BUTON (FluentButton_v1) ---
+		// Normal ve Accent (Belirgin Koyu Mavi) modlu, alt kenar derinlik gölgeli modern buton
+		public Button FluentButton_v1(string text, bool isAccent = false, Action onClick = null)
+		{
+			Button btn = new Button
+			{
+				Text = text,
+				Font = new Font("Segoe UI Semibold", 9f),
+				Height = Scale(32),
+				FlatStyle = FlatStyle.Flat,
+				BackColor = isAccent ? Color.FromArgb(0, 103, 192) : Color.White,
+				ForeColor = isAccent ? Color.White : Color.FromArgb(32, 32, 32),
+				AutoSize = true
+			};
+			btn.FlatAppearance.BorderSize = 0;
+
+			// Sınır Çizgisi Rengi (Accent ise koyu mavi, normal ise gri)
+			Color borderColor = isAccent ? Color.FromArgb(0, 90, 170) : Color.FromArgb(218, 218, 218);
+			btn.Rounded(6, borderColor, 1f);
+
+			// Hover Durum Renklendirmesi
+			if (isAccent)
+			{
+				btn.HoverBackColor(Color.FromArgb(0, 93, 172));
+			}
+			else
+			{
+				btn.HoverBackColor(Color.FromArgb(249, 249, 249));
+			}
+
+			if (onClick != null)
+			{
+				btn.OnClick(onClick);
+			}
+
+			return btn;
+		}
+
+
 		// --- 🌟 YARDIMCI METOT: PAYLAŞILAN YUVARLATILMIŞ GEOMETRİ ---
 		private static GraphicsPath GetSharedRoundedPath(Rectangle rect, int radius)
 		{
@@ -136,7 +175,8 @@ namespace SmartLayoutEngine
 		}
 
 		// --- 2. WINDOWS 11 SEÇİM KUTUSU (FluentCheckBox_v1) ---
-		public CheckBox FluentCheckBox_v1(string text, bool isChecked = false, Action<bool> onCheckedChanged = null)
+ 
+		public FluentCheckBox FluentCheckBox_v1(string text, bool isChecked = false, Action<bool> onCheckedChanged = null)
 		{
 			FluentCheckBox cb = new FluentCheckBox
 			{
@@ -148,6 +188,9 @@ namespace SmartLayoutEngine
 				BackColor = Color.Transparent
 			};
 
+			//// 🌟 DEBUG: Boyutları kontrol et
+			//Console.WriteLine($"FluentCheckBox Created: Text='{text}', PreferredSize={cb.GetPreferredSize(Size.Empty)}");
+
 			if (onCheckedChanged != null)
 			{
 				cb.CheckedChanged += (s, e) => onCheckedChanged(cb.Checked);
@@ -155,6 +198,7 @@ namespace SmartLayoutEngine
 
 			return cb;
 		}
+
 
 		// --- 3. WINDOWS 11 SEKMELİ GEÇİŞ (FluentTabControl_v1) ---
 		public Control FluentTabControl_v1(string[] tabNames, Action<int> onTabSelected)
@@ -420,17 +464,24 @@ namespace SmartLayoutEngine
 	}
 
 	// --- 🌟 WINDOWS 11 SEÇİM KUTUSU ÇİZİM SINIFI ---
-	public class FluentCheckBox : CheckBox
+	// --- 🌟 WINDOWS 11 SEÇİM KUTUSU ÇİZİM SINIFI (GÜNCELLENMİŞ) ---
+	public class FluentCheckBox_old1 : CheckBox
 	{
+		// 🌟 BANANA FOCUS FIX: Windows 11'in yazı etrafına çizdiği mavi odak çizgisini kesin olarak kapatır!
+		protected override bool ShowFocusCues => false;
+
 		public Color CheckedColor { get; set; } = Color.FromArgb(0, 103, 192);
 
-		public FluentCheckBox()
+		public FluentCheckBox_old1()
 		{
-			this.SetStyle(ControlStyles.OptimizedDoubleBuffer | ControlStyles.AllPaintingInWmPaint, true);
+
+			// 🌟 BANANA FIX: ControlStyles.UserPaint özelliğini aktif ediyoruz!
+			// Böylece Windows arkadan kendi kaba odak çizgilerini (focus cues) çizip yazımızı kirletemez.
+			this.SetStyle(ControlStyles.UserPaint | ControlStyles.OptimizedDoubleBuffer | ControlStyles.AllPaintingInWmPaint, true);
 			this.Cursor = Cursors.Hand;
 		}
 
-		// 🌟 AKILLI ŞEFFAF ATLATICI BROWSER YÖNTEMİ
+		// Akıllı şeffaf atlatıcı
 		private Color GetRealParentBackColor()
 		{
 			Control p = Parent;
@@ -447,8 +498,6 @@ namespace SmartLayoutEngine
 		{
 			e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
 
-			// 🌟 ESKİ: Color parentColor = this.Parent?.BackColor ...
-			// 🌟 YENİ: Gerçek rengi yukarı doğru arayarak sızıntıyı önlüyoruz!
 			Color parentColor = GetRealParentBackColor();
 			using (SolidBrush bgBrush = new SolidBrush(parentColor))
 			{
@@ -508,6 +557,186 @@ namespace SmartLayoutEngine
 			return path;
 		}
 	}
+
+	// --- 🌟 FLUENT CHECKBOX - CONTROL'DAN TÜRETİLMİŞ (ODAK ÇİZGİSİZ) ---
+	// --- 🌟 WINDOWS 11 SEÇİM KUTUSU - CONTROL'DAN TÜRETİLMİŞ (ODAK ÇİZGİSİZ) ---
+	// --- 🌟 WINDOWS 11 SEÇİM KUTUSU - CONTROL'DAN TÜRETİLMİŞ (ODAK ÇİZGİSİZ) ---
+	public class FluentCheckBox : Control
+	{
+		private bool _checked;
+		public bool Checked
+		{
+			get => _checked;
+			set
+			{
+				if (_checked != value)
+				{
+					_checked = value;
+					Invalidate();
+					CheckedChanged?.Invoke(this, EventArgs.Empty);
+				}
+			}
+		}
+
+		public event EventHandler CheckedChanged;
+		public Color CheckedColor { get; set; } = Color.FromArgb(0, 103, 192);
+
+		public FluentCheckBox()
+		{
+			this.SetStyle(
+				ControlStyles.UserPaint |
+				ControlStyles.OptimizedDoubleBuffer |
+				ControlStyles.AllPaintingInWmPaint |
+				ControlStyles.ResizeRedraw |
+				ControlStyles.StandardClick |
+				ControlStyles.SupportsTransparentBackColor,
+				true
+			);
+
+			this.Cursor = Cursors.Hand;
+			this.AutoSize = true;
+			this.BackColor = Color.Transparent;
+		}
+
+		// 🌟 BANANA FIX: GetPreferredSize override - BOYUT HESAPLAMA
+		public override Size GetPreferredSize(Size proposedSize)
+		{
+			float scale = DeviceDpi / 96f;
+			int boxSize = (int)(16 * scale);
+			int spacing = (int)(8 * scale);
+
+			// Metin boyutunu ölç
+			Size textSize = TextRenderer.MeasureText(
+				this.Text,
+				this.Font,
+				new Size(int.MaxValue, int.MaxValue),
+				TextFormatFlags.Left | TextFormatFlags.VerticalCenter
+			);
+
+			// Genişlik: kare + boşluk + metin + sağ boşluk
+			int width = boxSize + spacing + textSize.Width + (int)(4 * scale);
+
+			// Yükseklik: kare ve metinden hangisi büyükse
+			int height = Math.Max(boxSize, textSize.Height) + (int)(4 * scale);
+
+			return new Size(width, height);
+		}
+
+		private Color GetRealParentBackColor()
+		{
+			Control p = Parent;
+			int depth = 0;
+			while (p != null && (p.BackColor == Color.Transparent || p.BackColor.A == 0) && depth < 10)
+			{
+				p = p.Parent;
+				depth++;
+			}
+			return p?.BackColor ?? SystemColors.Control;
+		}
+
+		protected override void OnPaint(PaintEventArgs e)
+		{
+			e.Graphics.SmoothingMode = SmoothingMode.AntiAlias;
+
+			Color clearColor = (BackColor == Color.Transparent || BackColor.A == 0)
+				? GetRealParentBackColor()
+				: BackColor;
+
+			e.Graphics.Clear(clearColor);
+
+			float scale = this.DeviceDpi / 96f;
+			int boxSize = (int)(16 * scale);
+			int boxY = (this.Height - boxSize) / 2;
+
+			Rectangle boxRect = new Rectangle(1, boxY, boxSize, boxSize);
+
+			// --- CHECKBOX KARESİ ---
+			if (this.Checked)
+			{
+				using (SolidBrush fillBrush = new SolidBrush(CheckedColor))
+				using (GraphicsPath path = GetRoundedPath(boxRect, (int)(3 * scale)))
+				{
+					e.Graphics.FillPath(fillBrush, path);
+				}
+
+				// 🌟 BANANA FIX v2: DrawString + StringFormat = gerçek merkez
+				string checkIcon = "\uE73E";
+				using (Font iconFont = new Font("Segoe Fluent Icons", 8.5f * scale))
+				{
+					Font resolvedFont = iconFont.Name == "Segoe Fluent Icons" ? iconFont : new Font("Segoe MDL2 Assets", 8.5f * scale);
+
+					using (StringFormat sf = new StringFormat())
+					{
+						sf.Alignment = StringAlignment.Center;
+						sf.LineAlignment = StringAlignment.Center;
+						sf.FormatFlags = StringFormatFlags.NoWrap;
+
+						using (SolidBrush textBrush = new SolidBrush(Color.White))
+						{
+							e.Graphics.DrawString(checkIcon, resolvedFont, textBrush, boxRect, sf);
+						}
+					}
+				}
+			}
+			else
+			{
+				using (Pen borderPen = new Pen(Color.FromArgb(135, 135, 135), 1.5f * scale))
+				using (GraphicsPath path = GetRoundedPath(boxRect, (int)(3 * scale)))
+				{
+					e.Graphics.DrawPath(borderPen, path);
+				}
+			}
+
+			// --- METİN ---
+			Rectangle textRect = new Rectangle(
+				boxSize + (int)(8 * scale),
+				0,
+				this.Width - boxSize - (int)(8 * scale),
+				this.Height
+			);
+
+			TextFormatFlags textFlags = TextFormatFlags.Left |
+										TextFormatFlags.VerticalCenter |
+										TextFormatFlags.EndEllipsis;
+
+			TextRenderer.DrawText(e.Graphics, this.Text, this.Font, textRect, this.ForeColor, textFlags);
+		}
+
+		protected override void OnClick(EventArgs e)
+		{
+			base.OnClick(e);
+			this.Checked = !this.Checked;
+		}
+
+		protected override void OnKeyDown(KeyEventArgs e)
+		{
+			if (e.KeyCode == Keys.Space || e.KeyCode == Keys.Enter)
+			{
+				this.Checked = !this.Checked;
+				e.Handled = true;
+			}
+			base.OnKeyDown(e);
+		}
+
+		private static GraphicsPath GetRoundedPath(Rectangle rect, int radius)
+		{
+			GraphicsPath path = new GraphicsPath();
+			if (radius <= 0) { path.AddRectangle(rect); return path; }
+			int d = radius * 2;
+			Rectangle arc = new Rectangle(rect.X, rect.Y, d, d);
+			path.AddArc(arc, 180, 90);
+			arc.X = rect.Right - d - 1;
+			path.AddArc(arc, 270, 90);
+			arc.Y = rect.Bottom - d - 1;
+			path.AddArc(arc, 0, 90);
+			arc.X = rect.Left;
+			path.AddArc(arc, 90, 90);
+			path.CloseFigure();
+			return path;
+		}
+	}
+
+
 
 	// --- 🌟 WINDOWS 11 MODERN PROGRESS BAR SIZINTISIZ ÇİZİM SINIFI ---
 	public class FluentProgressBar : Panel

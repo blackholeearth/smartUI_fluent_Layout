@@ -37,14 +37,7 @@ namespace smartUI_fluent_Layout.examples
 			leftSidePanel.BackColor = Color.FromArgb(249, 249, 249);
 			PopulateSidebar(leftSidePanel);
 
-			//// Alttaki Ayarlar butonunun form boyutuna göre konumunu koruması için
-			//this.Resize += (s, e) => {
-			//	if (_sidebarSpacer != null)
-			//	{
-			//		int itemsHeight = _isSidebarExpanded ? 460 : 410;
-			//		_sidebarSpacer.Height = Math.Max(10, this.ClientSize.Height - itemsHeight);
-			//	}
-			//};
+		 
 
 			// --- 2. ÜST ARAMA VE AKSİYON ALANI ---
 			TextBox txtSearch = new TextBox
@@ -68,13 +61,25 @@ namespace smartUI_fluent_Layout.examples
 			txtSearch.Location = new Point(10, 7);
 			searchContainer.Controls.Add(txtSearch);
 
-			Button btnNewTask = CreateHeaderButton("\uE710", "Yeni görevi çalıştır");
-			Button btnEndTask = CreateHeaderButton("\uE711", "Görevi sonlandır");
-			Button btnEcoMode = CreateHeaderButton(SegoeMDL2Icons.Leaf, "Verimlilik modu");
-			Button btnMore = CreateHeaderButton("\uE712", "");
+
+		
+
+			var btnNewTask = CreateHeaderButton("\uE710", "Yeni görevi çalıştır");
+			var btnEndTask = CreateHeaderButton("\uE711", "Görevi sonlandır");
+			var btnEcoMode = CreateHeaderButton(SegoeMDL2Icons.Leaf, "Verimlilik modu");
+			var btnMore = CreateHeaderButton("\uE712", "");
+
+
+			// Solunda büyüteç ikonu hazır gelen arama kutusu
+			Control searchBox = ui.FluentSearchBox_v1("İşlemlerde ara...", width: 280);
+			var headerRow1 = ui.Row(
+				ui.Spring(),
+				searchBox.VAlignMiddle(),
+				ui.Spring()
+				);
+
 
 			var headerRow = ui.Row(
-				searchContainer.VAlignMiddle(),
 				ui.Spring(), // Geri kalan elemanları en sağa iter
 				btnNewTask.VAlignMiddle(),
 				ui.Space(6),
@@ -527,25 +532,67 @@ namespace smartUI_fluent_Layout.examples
 			sp.AddContent(settingsBtn);
 		}
 
-		private Button CreateHeaderButton(string icon, string text)
+		private Control CreateHeaderButton(string icon, string text)
 		{
-			Button btn = new Button
+			// 1. İkon Tanımlaması (Segoe Fluent)
+			Label ico = new Label
 			{
-				Text = string.IsNullOrEmpty(text) ? icon : $"{icon}  {text}",
-				Font = new Font("Segoe Fluent Icons", 9f),
-				Height = 32,
-				FlatStyle = FlatStyle.Flat,
-				BackColor = Color.White,
-				ForeColor = Color.FromArgb(32, 32, 32),
-				AutoSize = true
+				Text = icon,
+				Font = new Font("Segoe Fluent Icons", 10f),
+				AutoSize = true,
+				BackColor = Color.Transparent,
+				ForeColor = Color.FromArgb(32, 32, 32)
 			};
-			if (btn.Font.Name != "Segoe Fluent Icons") btn.Font = new Font("Segoe MDL2 Assets", 9f);
+			if (ico.Font.Name != "Segoe Fluent Icons") ico.Font = new Font("Segoe MDL2 Assets", 10f);
 
-			btn.FlatAppearance.BorderSize = 0;
-			btn.Rounded(6, Color.FromArgb(218, 218, 218));
-			btn.HoverBackColor(Color.FromArgb(245, 245, 245));
+			// 2. Metin Tanımlaması (Segoe UI - İkon fontundan bağımsız, temiz ve okunaklı)
+			Label lbl = null;
+			if (!string.IsNullOrEmpty(text))
+			{
+				lbl = new Label
+				{
+					Text = text,
+					Font = new Font("Segoe UI", 9f),
+					AutoSize = true,
+					BackColor = Color.Transparent,
+					ForeColor = Color.FromArgb(32, 32, 32)
+				};
+			}
 
-			return btn;
+			// 3. Deklaratif Grup Oluşturma
+			Control btnGroup;
+			if (lbl != null)
+			{
+				btnGroup = ui.Group(
+					ico.VAlignMiddle(),
+					ui.Space(8), // İkon ve yazı arasındaki 8px boşluk
+					lbl.VAlignMiddle()
+				);
+			}
+			else
+			{
+				btnGroup = ui.Group(ico.VAlignMiddle());
+			}
+
+			// 4. Windows 11 Fluent Tasarım Sınırları ve Hover Efekti
+			btnGroup
+				.Padding(12, 6+4, 12, 6+4)
+				.BackColor(Color.White)
+				.Rounded(6, Color.FromArgb(218, 218, 218), 1f) // İnce şık Win11 kenarlığı
+				.HoverBackColor(Color.FromArgb(245, 245, 245));
+
+			btnGroup.Cursor = Cursors.Hand;
+
+			// 🌟 Tip-Güvenli Tıklama Yönlendirmesi (Çocuk elemanlara tıklansa bile butonu tetikler)
+			foreach (Control child in btnGroup.Controls)
+			{
+				child.Cursor = Cursors.Hand;
+				child.Click += (s, e) => {
+					if (btnGroup is SmartGroup sg) sg.PerformClick();
+				};
+			}
+
+			return btnGroup;
 		}
 
 

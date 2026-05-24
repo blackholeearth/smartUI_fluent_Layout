@@ -14,9 +14,11 @@ namespace smartUI_fluent_Layout
             // see https://aka.ms/applicationconfiguration.
             ApplicationConfiguration.Initialize();
 
-			//var f3 = new Form3(); f3.Show();
 			//var f1 = new Form1(); f1.Show();
 			//var f2 = new Form2(); f2.Show();
+			new frm_TaskManager2().Show();
+			new frm_w11Settings().Show();
+			new frm_LayoutExample().Show();
 
 			//Application.Run(new frm_w11Settings());
 

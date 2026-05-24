@@ -75,7 +75,7 @@ public partial class SmartUI
 		if (!_originalFonts.ContainsKey(c)) _originalFonts[c] = c.Font.Size;
 		if (!(c is SmartGroup) && !_originalSizes.ContainsKey(c)) _originalSizes[c] = c.Size;
 	}
-	private void RegisterControl(Control c)
+	private void RegisterControl_old(Control c)
 	{
 		// 1. Zoom Hafızası
 		if (!_originalFonts.ContainsKey(c)) _originalFonts[c] = c.Font.Size;
@@ -102,6 +102,51 @@ public partial class SmartUI
 					);
 
 					// Yeni boyutu kontrole ANINDA ver ki motor hesaplarken doğru bilsin
+					c.Width = newPref.Width;
+					if (!(c is TextBox && !((TextBox)c).Multiline))
+						c.Height = newPref.Height;
+				}
+
+				// Motoru ateşle! Tüm satırları ve grupları yeni genişliğe göre tekrar diz
+				if (_form != null && _form.IsHandleCreated)
+				{
+					RefreshLayout();
+				}
+			};
+		}
+	}
+
+	private void RegisterControl(Control c)
+	{
+		// 1. Zoom Hafızası
+		if (!_originalFonts.ContainsKey(c)) _originalFonts[c] = c.Font.Size;
+		if (!(c is SmartGroup) && !_originalSizes.ContainsKey(c)) _originalSizes[c] = c.Size;
+
+		// 2. 🌟 REAKTİF METİN GEÇİŞ SİHRİ (TextBox Muafiyetli Entegrasyon)
+		var props = c.GetProps();
+		if (!props.IsTextChangeHooked)
+		{
+			props.IsTextChangeHooked = true;
+			c.TextChanged += (s, e) =>
+			{
+				if (_isPerformingLayout) return; // Sonsuz döngü koruması
+
+				// 🌟 BANANA INTEGRATION: 
+				// TextBox dışındaki (Label, CheckBox vb.) tüm kontrollerin metni değiştiğinde
+				// otomatik boyut esnetmesi devrededir. TextBox'lar ise sabit alanını korur.
+				// Bu sayede hem TextBox büzüşmesi engellenir hem de yazarken UI kilitlenmez!
+				if (!(c is TextBox))
+				{
+					// Yeni metne göre ne kadar yer kaplaması gerektiğini Windows'a sor
+					Size newPref = c.GetPreferredSize(Size.Empty);
+
+					// Zoom hafızasını güncelle (Geriye bölerek ham boyutunu buluyoruz)
+					_originalSizes[c] = new Size(
+						(int)(newPref.Width / _zoomFactor),
+						(int)(newPref.Height / _zoomFactor)
+					);
+
+					// Yeni boyutu kontrole ANINDA ver
 					c.Width = newPref.Width;
 					if (!(c is TextBox && !((TextBox)c).Multiline))
 						c.Height = newPref.Height;
@@ -1670,6 +1715,9 @@ public class SmartSidePanel : Panel
 		Margin = new Padding(0);
 		this.DoubleBuffered = true; // 🌟 Pürüzsüz çizim için eklendi
 	}
+
+	// 🌟 CS1061 Hatasını çözen metot:
+	public void PerformClick() => base.OnClick(EventArgs.Empty);
 }
 
 public class SmartGroup : Panel
@@ -1681,6 +1729,9 @@ public class SmartGroup : Panel
 		Margin = new Padding(0);
 		this.DoubleBuffered = true; // 🌟 Pürüzsüz çizim için eklendi
 	}
+
+	// 🌟 CS1061 Hatasını çözen metot:
+	public void PerformClick() => base.OnClick(EventArgs.Empty);
 }
 
 public class RowResult
