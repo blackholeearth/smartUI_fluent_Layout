@@ -91,8 +91,8 @@ namespace smartUI_fluent_Layout.examples
 				ui.Space(6),
 				btnMore.VAlignMiddle()
 			)
-			.Padding(8)
-			.Margin(16, 1, 16, 1)
+			.Padding(7)
+			.Margin(1, 1, 1, 1)
 			.BackColor(Color.White)
 			;
 
@@ -102,7 +102,10 @@ namespace smartUI_fluent_Layout.examples
 			// Tabloyu SmartUI Row içine gömüp GrowH ve GrowW veriyoruz.
 			// Böylece form büyüdükçe tablo da otomatik esneyecektir.
 			ui.Row(dgvProcesses.GrowW().GrowH())
-			  .Margin(16, 1, 16, 16);
+			  .Margin(1, 1, 1, 16)
+			  .Padding(10, 0, 0, 0)
+			  .BackColor(Color.White);
+			  ;
 
 			// Verileri yükle
 			LoadMockData();
